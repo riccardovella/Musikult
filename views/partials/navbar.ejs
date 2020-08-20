@@ -1,0 +1,50 @@
+<!-- NAVBAR TEMPLATE -->
+
+<nav class="navbar navbar fixed-top navbar-dark">
+    <a class="navbar-brand logo" href="http://localhost:3000"> 
+        <img class="icon" src="../img/icon.png"> 
+    </a>
+
+    <% if(isLogged) { %>
+
+        
+    <!--SPOTIFY BUTTON TO LOG IN IF NOT LOGGED-->
+    <% } else { %>
+
+        <button type="button" class="btn btn-outline-success btn-lg rounded-pill" id="spotifyButton" onclick="spotifyLogin()">
+            Connect to Spotify 
+        </button>
+
+    <% } %> 
+    <!--SEARCHFIELD-->
+    <input id="search-field" class="form-control ml-auto col-sm-3 rounded-pill mr-4" type="search" placeholder="Search" aria-label="Search">
+
+</nav>
+<!--SEARCHBAR SHOWING RESULT-->
+<div class = "container-fluid search-box-container">
+    <div class = "row justify-content-end">
+        <div class = "container-fluid col-4 search-box">
+            <div class='row' id='tab'></div>
+        </div>
+    </div>  
+</div>
+
+<script src = '../script/navbar_script.js'></script>
+
+<script> 
+
+    var url = new URL(window.location.href);
+    var token = url.searchParams.get("access_token");
+    if(token) {
+        $(document).ready(function() {
+            $(".logo").attr("href", "http://localhost:3000?access_token=" + token);
+        })
+    }
+
+    function spotifyLogin() {
+        window.location.href = "http://localhost:3000/spotifyAuth/";
+    }
+
+</script>
+
+

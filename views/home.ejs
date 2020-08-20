@@ -1,0 +1,46 @@
+<!-- HOME PAGE -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <%- include('partials/head'); -%>
+    <link rel="stylesheet" href="style/home.css">
+
+</head>
+<body>
+
+    <%- include('partials/navbar'); -%>
+
+    <!-- TITLE -->
+    <div class="container-fluid">    
+
+        <% if(!isLogged) { %>
+            <div class = "row align-items-center body-row" style="height: 100vh;">
+                <div class="page-title col-12">
+                    <h1 class="display-2" style="color:rgb(0, 0, 0, 0.9);">
+                        Musikult 
+                    </h1>
+                    <h1 class="display-3" style="color:rgba(40, 40, 40, 0.9); margin-top: 320px;">
+                        Your music portal
+                    </h2>
+                </div>
+            </div>     
+        
+        <% } %>
+        
+    </div>
+    <!--WHEN LOGGED LOAD THE HOME CONTAINER-->
+    <% if(isLogged) { %>
+            
+        <%- include('partials/homeContainer'); %>
+        <%- include('partials/player'); %>
+
+    <% } %> 
+
+    
+    <script src="script/bootstrap.min.js"> </script>
+
+
+</body>
+</html>

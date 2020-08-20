@@ -1,0 +1,13 @@
+#****************************************************************#
+#                           GITIGNORE                            #
+#****************************************************************#
+
+##GITHUB WILL IGNORE FILES AND FOLDERS THAT ARE CALLED HERE
+
+##node_modules folders
+/node_modules
+
+
+
+##.env files
+.env

@@ -1,0 +1,273 @@
+#player-container {
+    position: fixed;
+    z-index: 1800;
+    bottom: 0;
+    height: 80px;
+    background-color: rgb(40, 40, 40);
+    padding-left: 0;
+    padding-right: 0;
+}
+
+#audioplayer {
+    height: 15px;
+    margin-top: 10px;
+}
+  
+#timeline {
+    width: 100%;
+    height: 5px;
+    float: left;
+    -webkit-border-radius: 15px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.3); 
+    cursor: pointer;
+}
+  
+#playhead {
+    width: 8px;
+    height: 8px;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+    margin-top: -1px;
+    background: rgb(255, 255, 255);
+    cursor: pointer; 
+}
+
+#buttons {
+    position: relative;
+    top: 40px;
+    height: 40px;
+    background-color: rgb(82, 82, 82);   
+}
+  
+#play-button {
+    position: relative;
+    top: 15px;
+    cursor: pointer;
+    color: rgb(224, 224, 224);
+}
+
+#forward-button {
+    position: relative;
+    top: 15px;
+    left: 20px;
+    cursor: pointer;
+    color: rgb(224, 224, 224);
+}
+
+#backward-button {
+    position: relative;
+    top: 15px;
+    right: 20px;
+    cursor: pointer;
+    color: rgb(224, 224, 224);
+}
+
+#shuffle-button {
+    position: relative;
+    top: 14px;
+    left: 70px;
+    font-size: 18px;
+    cursor: pointer;
+    color: rgb(215, 215, 215);
+}
+
+#thumbnail {
+    float: left;
+    margin-left: 10px;
+    height: 80px;
+    width: 80px;
+    object-fit: cover;
+    border: 6px solid rgb(40, 40, 40);
+    border-radius: 20px;
+    visibility: hidden;
+    cursor: pointer;
+}
+
+#karaoke-button {
+    position: absolute;
+    color: rgb(255, 255, 255, 0.6);
+    left: 40px;
+    top: 14px;
+    visibility: hidden;
+    pointer-events:none;
+}
+
+#text-container {
+    position: absolute;
+    width: 45%;
+    left: 120px;
+}
+
+#title-container {
+    height: 15px;
+    width: 100%;
+    padding-left: 4px;
+}
+
+#artist-container {
+    width: 100%;
+    margin-top: 6px;
+    height: 15px;
+    padding-left: 4px;
+}
+
+#title {
+    color: white;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#artist {
+    color: rgb(255, 255, 255, 0.6);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 12px;
+    width: 100%;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}   
+
+#volume-container {
+    height: 40px;
+    padding-right: 0px;
+}
+
+#volume-button {
+    font-size: 18px;
+    margin-top: 2px;
+    float: right;
+    cursor: default;
+    color: rgb(224, 224, 224);
+}
+
+#volume {
+    width: 65px;
+    height: 7px;
+    -webkit-border-radius: 15px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+#volume-progress {
+    width: 0%;
+    height: 7px;
+    float: left;
+    -webkit-border-radius: 15px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+/*        KARAOKE         */
+
+#karaoke {
+
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.25);
+
+    padding-left: 0px;
+    padding-right: 0px;
+
+    z-index: 1780;
+
+}
+
+#karaoke-container {
+
+    position: relative;
+    width: 80%;
+    height: 80%;
+    top: 10%;
+    left: 10%;
+
+}
+
+#karaoke-thumbnail {
+
+    padding-top: 10%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: auto;
+    height: 80%;
+    object-fit: cover;
+
+}
+
+#karaoke-text-container {
+
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+
+    overflow-y: scroll;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE 10+ */
+
+}
+
+#karaoke-text-container::-webkit-scrollbar { 
+    width: 0px;  /* Remove scrollbar space */
+}
+
+
+.karaoke-text {
+
+    color: rgb(255, 255, 255, 0.9);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 30px;
+    text-align: center;
+
+}
+
+.karaoke-advice-text {
+
+    color: rgb(200, 200, 200, 0.5);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 20px;
+    text-align: center;
+    margin-top: 20px;
+
+}
+
+.karaoke-advice-link {
+
+    color: rgb(200, 200, 200, 0.7);
+    
+}
+
+#karaoke-mode-button {
+
+    position: absolute;
+    top: 100%;
+    margin-top: -140px;
+    left: 100%;
+    margin-left: -170px;
+    color: rgb(255, 255, 255, 0.3);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: underline;
+
+    display: none;
+
+}
+
+#karaoke-exit-button {
+    position: absolute;
+    top: 100%;
+    left: 40px;
+    margin-top: -140px;
+    font-size: xx-large;
+    color: rgb(255, 255, 255, 0.25);
+}
+
+
+  

@@ -1,0 +1,182 @@
+<!-- SONG PAGE -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/head'); -%>
+    <link rel="stylesheet" href="style/song_artist_style.css">
+</head>
+<body>
+
+    <%- include('partials/navbar'); -%>
+
+    <!-- HEADER WITH THUMBNAIL IMAGE AND ARTIST'S IMAGE -->
+    <img src= <%= info.header_image_url %> class="header-image">
+
+    <div class="container-fluid" style="position: relative;">
+        <div class="row justify-content-start" style="padding-top: 100px;">
+    
+            <div class= "container song-title col-8">
+                <h1 class="display-2" style="color: rgba(255, 255, 255, 0.950)"> <%= info.title %> </h1>
+                <h1 class="display-3" >
+                    <% if (token) { %>
+                        <a style = "color:rgba(255, 255, 255, 0.700)" href="http://localhost:3000/artists?id=<%= info.primary_artist.id %>&access_token=<%=token%>"> 
+                            <%= info.primary_artist.name %> 
+                        </a>
+                    <% } else { %>
+                        <a class="write-link" style = "color:rgba(255, 255, 255, 0.700)" href="http://localhost:3000/artists?id=<%= info.primary_artist.id%>" >
+                            <%= info.primary_artist.name %> 
+                        </a>
+                    <% } %>
+                </h1>
+            </div>
+            
+            <div class="col-2">
+                <img src=<%= info.song_art_image_url %> class="song-image"> 
+            </div>
+    
+            <div class="col-1"></div>
+    
+        </div>
+    
+    </div>
+
+    <!-- MIDDLE PANEL WHICH CONTAINS BUTTONS, LYRICS, PLAYER, DESCRIPTION, OTHER INFOS -->
+    <div class="container mid-panel">
+        <!-- BUTTONS -->
+        <div class="container-fluid row" style="padding-bottom: 40px;">
+
+            <div id="add-to-library-button" class="col-3">
+                <% if(addToLibrary && spotifyId) { %>
+                    <script>
+                        var songid="<%= spotifyId %>"
+                    </script>
+                    <% if(addToLibrary[0]) { %>
+                        <button type="button" class="btn btn-secondary btn-lg rounded-pill shadow-sm" onclick="removetrack(songid,token)">Remove From Library</button>
+                    <% } else { %>
+                        <button type="button" class="btn btn-success btn-lg rounded-pill shadow-sm" onclick="addtrack(songid,token)">Add To Library</button>
+                    <% } %>
+                <% } %>
+            </div>
+            <%if(isLogged && spotifyId) { %>
+                <div id="playsong-button" class="col-3">
+                    <button type="button" class="btn btn-success btn-lg rounded-pill shadow-sm" id="playsong-button" onclick="play_song(songid, token)"> Play </button>
+                </div>
+            <% } %> 
+        </div>
+        
+
+        <div class="row">
+
+            <!-- LYRICS AND INFOS ABOUT PRODUCTION AND WRITERS OF THE SONG -->
+            <div class = "container-fluid col-md-7">
+
+                <% if (lyrics) { %>
+                    <p class = "lead lyrics" id="lyrics" content="<%- lyrics %> "> 
+                        <% lyrics.forEach(line => { %>
+                            <%= "" + line %> <br>
+                        <% }) %> 
+                    </p>
+
+                    <div class="ll" content="<% lyrics.forEach(line => { %><%= line + "\n" %><%}); %>"></div>
+
+                <% } else { %>
+                    <p class = "not-lyrics" id="lyrics-not-found"> Sorry, we can't find lyrics for this track :( <br>
+                        <a href="javascript:showTextArea()"> Write them now! </a>
+                    </p>
+
+                    <!-- FORM -->
+                    <form action="" method="post" style="display: none">
+                        <div class="form-group row">
+                            <textarea class="form-control" rows="20" placeholder="Write your lyrics here" name="lyrics" required></textarea>
+                        </div>
+                        <div class="form-group row">
+                            <button type="submit" class="btn btn-primary">Send</button>
+                        </div>
+                    </form>
+                <% } %>
+
+                <div class ="producers">
+                    <% if (info.producer_artists[0]) { %>
+                        <p class="not-lyrics"> Produced by: 
+                            <% info.producer_artists.forEach(artist => { %>
+                                <%= artist.name %>  
+                            <% }) %>
+                        </p>
+                    <% } %> 
+                </div>
+
+                <div class="writers">
+                    <% if (info.writer_artists[0]) { %>
+                        <p class="not-lyrics"> Written by: 
+                            <% info.writer_artists.forEach(artist => { %>
+                                <%= artist.name %>
+                            <% }) %>
+                        </p>
+                    <% } %> 
+                </div>
+
+                <% if (isLogged && lyrics && !timestamps) { %>
+                    <p class = "not-lyrics"> This lyrics are not timed, if you time this lyrics all users will listen to the music while singing so it's a great thing  <br>
+                        <a id="time-game-link" href="javascript:timeLyrics()"> Do it here now! </a>
+                    </p>
+                <% } %> 
+                
+            </div>
+          
+            <div class="container-fluid col-md-5">
+
+                <!-- YOUTUBE PLAYER -->
+                <div id="player" video= <% info.media.forEach(media => { %>
+                    <% if (media.provider == 'youtube') { %>
+                        <%= media.url %>
+                    <% } %>
+                <% }) %> ></div>
+
+                <!-- DESCRIPTION -->
+                <p class = "description"> <% info.description.forEach(paragraph => { %>
+                    <%= "" + paragraph %> <br>
+                <% }) %> </p>
+
+            </div>
+        </div>
+    </div>
+
+    <% if(isLogged) { %>
+
+        <div style="height: 80px;"></div>
+            
+        <%- include('partials/player'); %>
+    
+    <% } %> 
+    
+    <div class="container-fluid" id="time-game">
+        <div id="time-game-text"></div>
+        <i class="fas fa-angle-double-down fa-lg" id="exit-button"></i>
+    </div>
+        
+    <script src="script/bootstrap.min.js"> </script>
+
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+
+    <script src="script/youtube_player.js"></script>
+    <script src="script/song_buttons.js"></script>
+    <script src="script/time_game.js"></script>
+    
+    <script>
+
+        $(document).ready(function() {
+            var url = "http://localhost:3000/submit" + window.location.search + "&type=lyrics";
+            $("form").attr("action",url);
+            $('textarea').val('');
+        })
+
+        function showTextArea() {
+            $("form").show();
+        }
+
+    </script>
+
+</body>
+</html>
+

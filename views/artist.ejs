@@ -1,0 +1,128 @@
+<!-- ARTIST PAGE -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/head'); -%>
+    <link rel="stylesheet" href="style/song_artist_style.css">
+</head>
+<body>
+
+    <%- include('partials/navbar'); -%>
+
+    <!-- HEADER WITH THUMBNAIL IMAGE -->
+    <img src=<%= info.artist.header_image_url %> class="header-image">
+
+    <div class="container-fluid" style="position: relative;">
+        <div class="row justify-content-start" style="padding-top: 100px;">
+
+            <div class= "container song-title col-8">
+                <h1 class="display-2" style="color: rgba(255, 255, 255, 0.950)"> <%= info.artist.name %> </h1>
+            </div>
+            
+            <div class="col-2">
+                <img src=<%= info.artist.image_url %> class="song-image"> 
+            </div>
+
+            <div class="col-1"></div>
+    
+        </div>
+
+    </div>
+
+    <!-- MIDDLE PANEL WHICH CONTAINS BUTTONS, BEST SONGS, DESCRIPTION, RELATED ARTISTS -->
+    <div class="container mid-panel">
+
+        <!-- BUTTONS -->
+        <% if(follow) { %>
+            <script>
+                var artistid = "<%= id %>" ;
+            </script>
+            <div id = "spotify-button">
+                <% if(follow[0]) { %>
+                    <button type="button" class="btn btn-secondary btn-lg rounded-pill shadow-sm" onclick="unfollow(artistid,token)">Unfollow</button>
+                <% } else { %>
+                    <button type="button" class="btn btn-success btn-lg rounded-pill shadow-sm"  onclick="follow(artistid,token)">Follow</button>
+                <% } %>
+            </div>
+        <% } %>
+
+        <!-- BEST SONGS -->
+        <div class="row">
+            <div class = "container-fluid col-md-7">
+
+                <h1 class="display-4" style="text-align: center; 
+                                             color: rgba(0, 0, 0, 0.699);
+                                             padding-bottom: 30px;"> 
+                    Best Songs 
+                </h1>
+                
+                <p> <% info.songs.forEach(song => { %>
+                    <div class="container"> 
+                        <div class="row song-div" id=<%= song.id %> >
+                            <img src= <%= song.song_art_image_thumbnail_url%> class="song-thumbnail col-2">
+                
+                            <p class="song-title col-10"> 
+                                <%= song.title_with_featured %>   
+                            </p>
+                        </div>
+                        <hr style="color:rgba(121, 121, 121, 0.651)">
+                    </div>
+                <% }) %> </p>
+                
+            </div>
+
+            <!-- DESCRIPTION -->           
+            <div class="container-fluid col-md-5">
+
+                <p class = "description"> <% info.artist.description.forEach(paragraph => { %>
+                    <%= "" + paragraph %> <br>
+                <% }) %> </p>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- RELATED ARTISTS -->
+    <% if (related_artists) { %>
+
+        <p class= "related-artists-title"> Related Artists</p>
+
+        <div class = "container-fluid" style="height: 0px; padding-right: 0px; padding-left: 0px;">
+            <div class="row justify-content-start container-fluid" style="position: relative; z-index: 900; margin-left: 0px; margin-right: 0px; padding-left: 0px; padding-right: 0px; height:0px">
+                <div class="container-fluid col-1 scroll-area left"> <p class="arrow"> &#8810 </p></div> 
+                <div class="container-fluid col-1 offset-10 scroll-area right"> <p class="arrow"> &#8811 </p></div> 
+            </div>
+        </div>
+        <div class = "container bottom-container">
+            <div class="row container-fluid">
+                <div class="row flex-row flex-nowrap related-artists-row" style="position: relative; left:33px" number="<%= related_artists.length %> ">
+                    <% related_artists.forEach(artist => { %>
+                        <div class="related-artist" id= <%= artist.id %> >
+                            <img src= <%= artist.images[0].url %> class="related-artist-img">
+                            <p class="related-artist-text"> <%= artist.name %> </p>
+                        </div>
+                    <% }) %>
+                </div>
+            </div>
+        </div>
+
+        <div style="height: 200px"></div>
+     
+    <% } %> 
+
+    <% if(isLogged) { %>
+            
+        <%- include('partials/player'); %>
+    
+    <% } %>  
+    
+    <script src="script/bootstrap.min.js"> </script>
+
+    <script src="script/artist_script.js"></script>  <!-- JQuery animations mostly -->
+    <script src="script/artist_buttons.js"></script> <!-- Follow/Unfollow button handler -->
+
+</body>
+</html>
+
+

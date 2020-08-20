@@ -1,0 +1,75 @@
+
+.page-title {
+
+    padding-bottom: 20px;
+    text-align: center;
+    font-family: 'Sarabun', sans-serif;
+
+}
+
+.profile-image {
+
+    object-fit: cover;
+    height: 200px;
+    border: 3px solid black;
+    border-radius: 100px;
+
+}
+
+.artist-card {
+
+    width: 300px;
+    height: 400px;
+
+}
+
+.song-card {
+
+    width: 300px;
+    height: 400px;
+
+}
+
+.card-img {
+
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+
+}
+
+.carousel-img {
+
+    object-fit: cover;
+    width: 100%;
+    height: 400px;
+
+}
+
+.card-title {
+
+    position: relative; 
+    top: -200px;
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+    font-size: 30px;
+    display: none
+
+}
+
+.card-subtitle {
+
+    position: relative; 
+    top: -175px;
+    color: rgba(255, 255, 255, 0.65);
+    text-align: center;
+    font-size: 25x;
+    display: none
+
+}
+
+.gfont {
+
+    font-family: 'Sarabun', sans-serif;
+
+}

@@ -1,0 +1,46 @@
+<!-- THANK PAGE TEMPLATE -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/head'); -%>
+</head>
+<body>
+
+    <%- include('partials/navbar'); -%>
+
+    <div class = "row align-items-center" style="height: 100vh;">
+        <div class="page-title col-12" style="padding-bottom: 20px;">
+            <h1 class="display-3" style="color: rgba(0, 0, 0, 0.85); text-align: center;">
+                Thanks for contributing to Musikult :)
+           </h1>
+           <h1 class="display-4" style="padding-top: 50px; text-align: center; margin-top: 320px;"> 
+               <a href="javascript:linkClicked()"> Go back to the song page </a>
+           </h1>
+        </div>
+    </div>   
+    
+    <% if(isLogged) { %>
+            
+        <%- include('partials/player'); %>
+    
+    <% } %>  
+      
+    <script src="script/bootstrap.min.js"> </script>
+
+    <script>
+        function linkClicked() {
+            var id = url.searchParams.get("id");
+            if(token) {
+                window.location.href = "http://localhost:3000/songs?access_token=" + token + "&id=" + id;
+            }
+            else {
+                window.location.href = "http://localhost:3000/songs?id=" + id;
+            }  
+        }
+    </script>
+
+</body>
+</html>
+
+

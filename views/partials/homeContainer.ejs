@@ -1,0 +1,121 @@
+<!--CONTAINER WITH SPOTIFY ACCOUNT INFOS-->
+<div class="container-fluid" style= "padding-bottom: 120px">
+	<div class="row align-items-center" style="padding-top: 100px; padding-left: 50px;" >
+		<div class= "container song-title col-9">
+			<h1 style="color: rgba(0, 0, 0, 0.800); text-align: end; font-family: 'Sarabun', sans-serif;"> 
+				<%= inf.information[0].name %> 
+			</h1>
+		</div>
+
+		<% if(inf.information[0].image) { %>
+			<div class="container-fluid col-3">
+				<img src=<%= inf.information[0].image%> class="profile-image">
+			</div>
+		<% } %>
+	</div>
+</div>
+
+<div class="container">
+	<!--BOOTSTRAP CAROUSEL WITH NEW SPOTIFY RELEASES -->
+	<h1 class="display-4" style="padding-bottom: 10px; color:rgba(0, 0, 0, 0.9)">
+		New Releases 
+	</h1>
+	<div id="carousel" class="carousel slide shadow mb-5 rounded" data-ride="carousel">
+		<ol class="carousel-indicators">
+			  <li data-target="#carousel" data-slide-to="0" class="active"></li>
+			 <li data-target="#carousel" data-slide-to="1"></li>
+			  <li data-target="#carousel" data-slide-to="2"></li>
+			<li data-target="#carousel" data-slide-to="3"></li>
+			<li data-target="#carousel" data-slide-to="4"></li>
+		</ol>
+		<div class="carousel-inner">
+			<% for( let i = 0; i < newReleases.length; i++ ) { %>
+				<div class="carousel-item<% if (i == 0) { %> active <% } %>">
+					<img src="<%= newReleases[i].images[0].url %>" class="d-block w-100 carousel-img">
+					<div class="carousel-caption d-none d-md-block">
+						  <h5><%= newReleases[i].name %></h5>
+						  <p><%= newReleases[i].artists[0].name %> </p>
+					</div>
+				</div>
+			<% } %>
+		</div>
+	</div>
+	<!--BOOTSTRAP CARDS WITH LOGGED ACCOUNT SPOTIFY FAVOURITE ARTISTS-->
+	<div class="container-fluid justify-content-center" style="margin-top: 100px;">
+
+		<% if(artist != null) { %>
+			<h1 class="display-3" style="line-height: 2.0; padding-bottom: 10px; color:rgba(0, 0, 0, 0.9)">
+				Your Favourite Artists 
+			</h1>
+
+			<div class="row">
+				<% for( let i = 0; i < 3; i++ ) { %>
+					<% if (artist.artisti[i] != null) { %>
+						<div class="col-sm-4 d-flex justify-content-center">
+							<div class="artist-card" artist-id="<%=artist.artisti[i].id%>">
+								<img src=<%= artist.artisti[i].image.url %> class="card-img shadow mb-5 rounded">
+								<p class="card-title"><%= artist.artisti[i].name %></p>
+							</div>
+						</div>
+					<% } %>
+				<% } %>
+			</div>
+
+			<div class="row">
+				<% for( let i = 3; i < 6; i++ ) { %>
+					<% if ( artist != null) { %>
+						<div class="col-sm-4 d-flex justify-content-center">
+							<div class="artist-card" artist-id="<%=artist.artisti[i].id%>">
+								<img src=<%= artist.artisti[i].image.url %> class="card-img shadow mb-5 rounded">
+								<p class="card-title"><%= artist.artisti[i].name %></p>
+							</div>
+						</div>
+					<% } %>
+				<% } %>
+			</div>
+		<% } %>
+
+	</div>	
+	<!--BOOTSTRAP CARDS WITH LOGGED ACCOUNT SPOTIFY FAVOURITE SONGS -->
+	<div class="container-fluid justify-content-center">
+
+		<% if(tracks != null) { %> 
+			<h1 class="display-3" style="line-height: 2.0; padding-bottom: 10px; color:rgba(0, 0, 0, 0.9)">
+				Your Favourite Songs 
+			</h1>
+   
+			<div class="row">
+				<% for( let i = 0; i < 3; i++ ) { %>
+					<% if ( tracks.tracks[i] != null) { %>
+						<div class="col-sm-4 d-flex justify-content-center">
+							<div class="song-card" artist-name = "<%= tracks.tracks[i].nameartist %>" song-name = "<%= tracks.tracks[i].name%>" >
+								<img src=<%= tracks.tracks[i].image %> class="card-img shadow mb-5 rounded">
+								<p class="card-title"><%= tracks.tracks[i].name %></p>
+								<p class="card-subtitle"><%= tracks.tracks[i].nameartist %></p>
+							</div>
+						</div>
+					<% } %>	
+				<% } %>
+			</div>
+			
+			<div class="row">
+				<% for( let i = 3; i < 6; i++ ) { %>
+					<% if (tracks != null) { %>
+						<div class="col-sm-4 d-flex justify-content-center">
+							<div class="song-card" artist-name = "<%= tracks.tracks[i].nameartist %>" song-name = "<%= tracks.tracks[i].name%>">
+								<img src=<%= tracks.tracks[i].image %> class="card-img shadow mb-5 rounded">
+								<p class="card-title"><%= tracks.tracks[i].name %></p>
+								<p class="card-subtitle"><%= tracks.tracks[i].nameartist %></p>
+							</div>
+						</div>
+					<% } %>
+				<% } %>
+			</div>
+		<% } %>
+	</div>
+
+	
+</div>
+
+<script src ="../script/home_script.js"></script>
+
