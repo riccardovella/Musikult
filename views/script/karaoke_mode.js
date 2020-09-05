@@ -10,16 +10,23 @@ var karaoke_lyrics;
 var karaoke_timestamps;
 var karaoke_lines;
 
+var karaoke_mode_lyrics;
+
 var karaoke_mode_active = false;
 
 var active_song_id;
 
 var active_index;
 
+var time_lyrics_is_open = false;
+
 function showKaraokeMode() {
 
+    if(time_lyrics_is_open) return;
     if(karaoke_active) return;
     karaoke_active = true;
+
+    $("#karaoke-button").hide();
 
     karaoke_text_container.hide();
 
@@ -39,6 +46,8 @@ function hideKaraokeMode() {
 
     if(!karaoke_active) return;
     karaoke_active = false;
+
+    $("#karaoke-button").show();
 
     karaoke.animate({ top: "100vh", "background-color": "rgb(0, 0, 0, 0.25)"}, 1000, () => {
         karaoke.css("height", "0vh");
@@ -98,23 +107,33 @@ function showKaraokeLyrics() {
 
     if(karaoke_lyrics == null) {
         karaoke_text_container.hide();
-        karaoke_container.append(`<p class='karaoke-advice-text'> This song has no lyrics, write them in the<a class='karaoke-advice-link' href='http://localhost:3000/songs?access_token=${token}&id=${active_song_id}'> song page </a></p>`);
+        karaoke_container.append(`<p class='karaoke-advice-text'> This song has no lyrics, write them in the<a class='karaoke-advice-link' href='javascript:karaokeGoToSongPage()'> song page </a></p>`);
         document.getElementById("karaoke-thumbnail").style.filter = "brightness(100%)";
         return;
+    }
+
+    karaoke_mode_lyrics = [];
+    for(let i = 0; i < karaoke_lyrics.length; i++) { 
+        var string = "";
+        if(karaoke_lyrics[i].indexOf('[') != -1 && karaoke_lyrics[i].indexOf(']') != -1) 
+            string = karaoke_lyrics[i].slice(0, karaoke_lyrics[i].indexOf('[')) + karaoke_lyrics[i].slice(karaoke_lyrics[i].indexOf(']') + 1);
+        else string = karaoke_lyrics[i];
+
+        karaoke_mode_lyrics.push(string);
     }
 
     document.getElementById("karaoke-thumbnail").style.filter = "brightness(50%)";
     karaoke_text_container.show();
 
     karaoke_lines = [];
-    for(let i = 0; i < karaoke_lyrics.length; i++) {
-        var line = $("<p class='karaoke-text'>" + karaoke_lyrics[i] + "</p> <br>");
+    for(let i = 0; i < karaoke_mode_lyrics.length; i++) {
+        var line = $("<p class='karaoke-text'>" + karaoke_mode_lyrics[i] + "</p> <br>");
         karaoke_text_container.append(line);
-        if(karaoke_lyrics[i] != "" && karaoke_lyrics[i] != '\r') {
+        if(karaoke_mode_lyrics[i] != "" && karaoke_mode_lyrics[i] != '\r') {
             karaoke_lines.push(line);
         }    
     }
-
+    
     karaoke_text_container.css({ "overflow-y": "scroll" });
 
     if(karaoke_timestamps != null && karaoke_mode_active) {
@@ -129,6 +148,10 @@ function showKaraokeLyrics() {
     if(karaoke_timestamps == null) return;
     karaoke_mode_button.show();
 
+}
+
+function karaokeGoToSongPage() {
+    redirect('/songs', 'id=' + active_song_id);
 }
 
 function karaokeFindActiveLine() {
@@ -181,12 +204,12 @@ $(document).ready(function() {
 
 // karaoke mode button
 karaoke_mode_button.mouseenter(function() {
-    karaoke_mode_button.css({ color: "rgb(255, 255, 255, 0.5)"});
+    karaoke_mode_button.css({ color: "rgb(255, 255, 255, 0.6)"});
 })
 
 karaoke_mode_button.mouseleave(function() {
     if(karaoke_mode_active)
-        karaoke_mode_button.css({ color: "rgb(255, 255, 255, 0.7)"});
+        karaoke_mode_button.css({ color: "rgb(255, 255, 255, 0.9)"});
     else
         karaoke_mode_button.css({ color: "rgb(255, 255, 255, 0.3)"});
 })
@@ -194,7 +217,7 @@ karaoke_mode_button.mouseleave(function() {
 karaoke_mode_button.click(function() {
     karaoke_mode_active = !karaoke_mode_active;
     if(karaoke_mode_active)
-        karaoke_mode_button.css({ color: "rgb(255, 255, 255, 0.7)"});
+        karaoke_mode_button.css({ color: "rgb(255, 255, 255, 0.9)"});
     else
         karaoke_mode_button.css({ color: "rgb(255, 255, 255, 0.3)"});
     showKaraokeLyrics();

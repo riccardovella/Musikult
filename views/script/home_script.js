@@ -1,5 +1,4 @@
-var url = new URL(window.location.href);
-var token = url.searchParams.get("access_token");
+
 //animation on favourite artists card and redirect to the selected artist
 $(document).ready(function(){
     $(".artist-card").mouseenter(function() {
@@ -15,7 +14,7 @@ $(document).ready(function(){
         $(this).children(".card-title").hide();
     });
     $(".artist-card").click(function() {
-        window.location.href = "http://localhost:3000/artists" + "?access_token=" + token + "&" + "id=" + $(this).attr("artist-id") + "s";
+        redirect("/artists", "id=" + $(this).attr("artist-id") + "s");
     });
 
 });
@@ -65,7 +64,7 @@ $(document).ready(function() {
     })
 })
 
-const access_token = "kG91TrvmqYf06aeYAOpgxFTXcmUAJ0N0wRCtbn7m-tHXsfGVDWULJAGro3dbQWfS";
+const genius_access_token = "kG91TrvmqYf06aeYAOpgxFTXcmUAJ0N0wRCtbn7m-tHXsfGVDWULJAGro3dbQWfS";
 const API = "https://api.genius.com";
 //call to get genius song id passing artist and song from spotify
 function geniusRef(artist,song) {
@@ -77,22 +76,21 @@ function geniusRef(artist,song) {
     artist = artist.replace(" ","%20");
     song = song.replace(" ","%20");
 
-    var url = API + "/search?q=" + song + "%20" + artist + "&"+ "access_token=" + access_token;
+    var url = API + "/search?q=" + song + "%20" + artist + "&"+ "access_token=" + genius_access_token;
     /* https://api.genius.com/search?q=:query */
        
     var httpRequest = new XMLHttpRequest();
     httpRequest.onreadystatechange = handleResponse;
-    httpRequest.open("GET",url,false);
+    httpRequest.open("GET", url, false);
     httpRequest.send();
    
 };
 //on call success redirect to the song page
 function handleResponse(e) {
     if (e.target.readyState == 4 && e.target.status == 200) {
-        var id =JSON.parse(e.target.responseText)//.response.hits[0].result.id;
+        var id = (JSON.parse(e.target.responseText)).response.hits[0].result.id;
         
-        id=id.response.hits[0].result.id;
-        window.location.href = "http://localhost:3000/songs?id=" + id + "&" +"access_token=" + token;
+        redirect("/songs", "id=" + id);
     }
 }
 

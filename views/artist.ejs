@@ -40,9 +40,9 @@
             </script>
             <div id = "spotify-button">
                 <% if(follow[0]) { %>
-                    <button type="button" class="btn btn-secondary btn-lg rounded-pill shadow-sm" onclick="unfollow(artistid,token)">Unfollow</button>
+                    <button type="button" class="btn btn-secondary btn-lg rounded-pill shadow-sm" onclick="unfollow(artistid)">Unfollow</button>
                 <% } else { %>
-                    <button type="button" class="btn btn-success btn-lg rounded-pill shadow-sm"  onclick="follow(artistid,token)">Follow</button>
+                    <button type="button" class="btn btn-success btn-lg rounded-pill shadow-sm"  onclick="follow(artistid)">Follow</button>
                 <% } %>
             </div>
         <% } %>

@@ -46,13 +46,13 @@ router.get('/callback', function(req, res) {
 		if (!error && response.statusCode === 200) {
   
 		  	var access_token = body.access_token;
-			//refresh_token = body.refresh_token;
+			var refresh_token = body.refresh_token;
   
 		  	// redirects to index and pass the token to the browser to make requests from there
 		  	res.redirect('/?' +
 			querystring.stringify({
 			  	access_token: access_token,
-			  	//refresh_token: refresh_token
+			  	refresh_token: refresh_token
 			}));
 			
 		} else {

@@ -1,7 +1,7 @@
 <!-- NAVBAR TEMPLATE -->
 
 <nav class="navbar navbar fixed-top navbar-dark">
-    <a class="navbar-brand logo" href="http://localhost:3000"> 
+    <a class="navbar-brand logo" href="javascript:logoClicked()"> 
         <img class="icon" src="../img/icon.png"> 
     </a>
 
@@ -33,16 +33,12 @@
 
 <script> 
 
-    var url = new URL(window.location.href);
-    var token = url.searchParams.get("access_token");
-    if(token) {
-        $(document).ready(function() {
-            $(".logo").attr("href", "http://localhost:3000?access_token=" + token);
-        })
+    function logoClicked() {
+        redirect();
     }
 
     function spotifyLogin() {
-        window.location.href = "http://localhost:3000/spotifyAuth/";
+        redirect('/spotifyAuth');
     }
 
 </script>

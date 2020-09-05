@@ -6,7 +6,8 @@ var router = express.Router();
 
 router.get('/', function(req, res) {
 
-    var token = req.query.access_token;
+    var access_token = req.query.access_token;
+    var refresh_token = req.query.refresh_token;
     var id = req.query.id;
 
     // id could be either a genius id or a spotify id;
@@ -18,11 +19,11 @@ router.get('/', function(req, res) {
         
         id = id.substring(0, id.length-1);
         
-        genius.spotifyToGeniusArtistId(token, id, function(geniusId) {
+        genius.spotifyToGeniusArtistId(access_token, refresh_token, id, function(geniusId) {
             genius.getArtistInfo(geniusId, function(artistInfo) {
-                if(token) {
-                    spotify.isFollowed(token,ids,function(isFollowed) {
-                        spotify.getRelatedArtists(token, id, function(relatedArtists) {
+                if(access_token) {
+                    spotify.isFollowed(access_token, refresh_token, ids, function(isFollowed) {
+                        spotify.getRelatedArtists(access_token, refresh_token, id, function(relatedArtists) {
                             res.render('artist', {
                                 info: artistInfo, 
                                 related_artists: relatedArtists,
@@ -45,10 +46,10 @@ router.get('/', function(req, res) {
     else { //if id is from genius 
 
         genius.getArtistInfo(id, function(artistInfo) {
-            if(token) {
-                genius.geniusToSpotifyArtistId(token, id, function(spotifyId) {
-                    spotify.getRelatedArtists(token, spotifyId, function(relatedArtists) {
-                        spotify.isFollowed(token, spotifyId, function(obj3) {
+            if(access_token) {
+                genius.geniusToSpotifyArtistId(access_token, refresh_token, id, function(spotifyId) {
+                    spotify.getRelatedArtists(access_token, refresh_token, spotifyId, function(relatedArtists) {
+                        spotify.isFollowed(access_token, refresh_token, spotifyId, function(obj3) {
                             res.render('artist', {
                                 info: artistInfo, 
                                 related_artists: relatedArtists, 

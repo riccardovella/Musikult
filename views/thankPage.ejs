@@ -31,12 +31,7 @@
     <script>
         function linkClicked() {
             var id = url.searchParams.get("id");
-            if(token) {
-                window.location.href = "http://localhost:3000/songs?access_token=" + token + "&id=" + id;
-            }
-            else {
-                window.location.href = "http://localhost:3000/songs?id=" + id;
-            }  
+            redirect('/songs', 'id=' + id);
         }
     </script>
 

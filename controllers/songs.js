@@ -7,19 +7,20 @@ const db = require("../utilities/db.js");
 const router = express.Router();
 
 router.get('/', function(req, res) {
-    var token = req.query.access_token;
+
+    var access_token = req.query.access_token;
+    var refresh_token = req.query.refresh_token;
     var id = req.query.id;
 
-    if(token) {
-        genius.geniusToSpotifySongId(token, id, function(spotifyId) {
+    if(access_token) {
+        genius.geniusToSpotifySongId(access_token, refresh_token, id, function(spotifyId) {
             genius.getSongInfo(id, function(songInfo) {
                 db.findLyrics(id, songInfo.title, songInfo.primary_artist.name, function(lyrics, timestamps) {
-                    spotify.isInLibrary(token, spotifyId, function(isInLibrary) {
+                    spotify.isInLibrary(access_token, refresh_token, spotifyId, function(isInLibrary) {
                         res.render('song', {
                             info: songInfo, 
                             lyrics: lyrics, 
                             timestamps: timestamps,
-                            token: token, 
                             addToLibrary: isInLibrary, 
                             spotifyId: spotifyId,
                             isLogged: true
@@ -36,7 +37,6 @@ router.get('/', function(req, res) {
                     info: songInfo, 
                     lyrics: lyrics, 
                     timestamps: timestamps,
-                    token: null, 
                     addToLibrary: null,
                     isLogged: false
                 });

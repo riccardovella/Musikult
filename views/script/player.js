@@ -171,18 +171,9 @@ function run() {
 
 // REQUESTS TO THE API //
 
-function sendAjaxRequest(type, url, handler = () => {}, mode = true) {
-  
-  var httpRequest = new XMLHttpRequest();
-  httpRequest.onreadystatechange = handler;
-  httpRequest.open(type, url, mode);
-  httpRequest.send();
-
-}
-
 function getCurrentState() {
 
-  var url = "https://api.spotify.com/v1/me/player?access_token=" + token;
+  var url = "https://api.spotify.com/v1/me/player?access_token=" + access_token;
   
   sendAjaxRequest("GET", url, handleResponseCurrentState);
 
@@ -236,28 +227,28 @@ function handleResponseCurrentState(e) {
 
 function setPlay() {
 
-  var url = "https://api.spotify.com/v1/me/player/play?access_token=" + token;  
+  var url = "https://api.spotify.com/v1/me/player/play?access_token=" + access_token;  
   sendAjaxRequest("PUT", url);
 
 }
 
 function setPause() {
 
-  var url = "https://api.spotify.com/v1/me/player/pause?access_token=" + token;  
+  var url = "https://api.spotify.com/v1/me/player/pause?access_token=" + access_token;  
   sendAjaxRequest("PUT", url);
 
 }
 
 function setPrevious() {
 
-  var url = "https://api.spotify.com/v1/me/player/previous?access_token=" + token; 
+  var url = "https://api.spotify.com/v1/me/player/previous?access_token=" + access_token; 
   sendAjaxRequest("POST", url);
   
 }
 
 function setNext() {
 
-  var url = "https://api.spotify.com/v1/me/player/next?access_token=" + token;  
+  var url = "https://api.spotify.com/v1/me/player/next?access_token=" + access_token;  
   sendAjaxRequest("POST", url);
   
 }
@@ -266,14 +257,14 @@ function seekPosition(position) {
 
   position = parseInt(position);
 
-  var url = "https://api.spotify.com/v1/me/player/seek?position_ms=" + position + "&access_token=" + token;
+  var url = "https://api.spotify.com/v1/me/player/seek?position_ms=" + position + "&access_token=" + access_token;
   sendAjaxRequest("PUT", url);
 
 }
 
 function getVolume() {
 
-  var url = "https://api.spotify.com/v1/me/player/devices?access_token=" + token;  
+  var url = "https://api.spotify.com/v1/me/player/devices?access_token=" + access_token;  
   sendAjaxRequest("GET", url, handleResponseVolume);
 
 }
@@ -296,7 +287,7 @@ function handleResponseVolume(e) {
 
 function seekVolume(vol) {
 
-  var url = "https://api.spotify.com/v1/me/player/volume?volume_percent=" + vol + "&access_token=" + token;  
+  var url = "https://api.spotify.com/v1/me/player/volume?volume_percent=" + vol + "&access_token=" + access_token;  
   sendAjaxRequest("PUT", url);
 
 }
@@ -305,8 +296,8 @@ function toggleShuffle() {
 
   shuffle = !shuffle;
 
-  var url = "https://api.spotify.com/v1/me/player/shuffle?state=" + shuffle + "&access_token=" + token;  
-  sendAjaxRequest("PUT", url);
+  const ajaxUrl = "https://api.spotify.com/v1/me/player/shuffle?state=" + shuffle + "&access_token=" + access_token;  
+  sendAjaxRequest("PUT", ajaxUrl);
 
 }
 
@@ -316,12 +307,10 @@ function changeDevice(device_id) {
     "device_ids": [ device_id ]
   }
 
-  var url = "https://api.spotify.com/v1/me/player?access_token=" + token;
+  const ajaxUrl = "https://api.spotify.com/v1/me/player?access_token=" + access_token;
 
-  var httpRequest = new XMLHttpRequest();
-  httpRequest.onreadystatechange = () => {};
-  httpRequest.open("PUT", url, false);
-  httpRequest.send(JSON.stringify(body));
+  sendAjaxRequest("PUT", ajaxUrl, () => {}, false, body);
+
 }
 
 
@@ -401,9 +390,9 @@ $("#title").mouseleave(function() {
   $(this).css({ "text-decoration": "none" });
 })
 
-/*$("#title").click(function() {
-  window.location.href = "http://localhost:3000/songs" + "?access_token=" + token + "&" + "id=" + playing_track_id + "s";
-})*/
+$("#title").click(function() {
+  //redirect('/songs', 'id=' + playing_track_id + "s");
+})
 
   // artist
 $("#artist").mouseenter(function() {
@@ -417,7 +406,7 @@ $("#artist").mouseleave(function() {
 })
 
 $("#artist").click(function() {
-  window.location.href = "http://localhost:3000/artists" + "?access_token=" + token + "&" + "id=" + playing_artist_id + "s";
+  redirect('/artists', 'id=' + playing_artist_id + "s");
 })
 
  // volume 
@@ -442,11 +431,9 @@ $("#thumbnail").mouseleave(function() {
 
 $("#thumbnail").click(function() {
   if(karaoke_active) {
-    $("#karaoke-button").show();
     hideKaraokeMode()
   }
   else {
-    $("#karaoke-button").hide();
     showKaraokeMode()
   }
 })

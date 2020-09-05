@@ -18,16 +18,12 @@
     
             <div class= "container song-title col-8">
                 <h1 class="display-2" style="color: rgba(255, 255, 255, 0.950)"> <%= info.title %> </h1>
-                <h1 class="display-3" >
-                    <% if (token) { %>
-                        <a style = "color:rgba(255, 255, 255, 0.700)" href="http://localhost:3000/artists?id=<%= info.primary_artist.id %>&access_token=<%=token%>"> 
-                            <%= info.primary_artist.name %> 
-                        </a>
-                    <% } else { %>
-                        <a class="write-link" style = "color:rgba(255, 255, 255, 0.700)" href="http://localhost:3000/artists?id=<%= info.primary_artist.id%>" >
-                            <%= info.primary_artist.name %> 
-                        </a>
-                    <% } %>
+                <h1 class="display-3">
+                    
+                    <a style = "color:rgba(255, 255, 255, 0.700)" href="javascript:artistLinkClicked()" id="song-page-artist-link" artist_id="<%= info.primary_artist.id %>"> 
+                        <%= info.primary_artist.name %> 
+                    </a>
+                    
                 </h1>
             </div>
             
@@ -52,15 +48,15 @@
                         var songid="<%= spotifyId %>"
                     </script>
                     <% if(addToLibrary[0]) { %>
-                        <button type="button" class="btn btn-secondary btn-lg rounded-pill shadow-sm" onclick="removetrack(songid,token)">Remove From Library</button>
+                        <button type="button" class="btn btn-secondary btn-lg rounded-pill shadow-sm" onclick="removetrack(songid)">Remove From Library</button>
                     <% } else { %>
-                        <button type="button" class="btn btn-success btn-lg rounded-pill shadow-sm" onclick="addtrack(songid,token)">Add To Library</button>
+                        <button type="button" class="btn btn-success btn-lg rounded-pill shadow-sm" onclick="addtrack(songid)">Add To Library</button>
                     <% } %>
                 <% } %>
             </div>
             <%if(isLogged && spotifyId) { %>
                 <div id="playsong-button" class="col-3">
-                    <button type="button" class="btn btn-success btn-lg rounded-pill shadow-sm" id="playsong-button" onclick="play_song(songid, token)"> Play </button>
+                    <button type="button" class="btn btn-success btn-lg rounded-pill shadow-sm" id="playsong-button" onclick="play_song(songid)"> Play </button>
                 </div>
             <% } %> 
         </div>
@@ -173,6 +169,10 @@
 
         function showTextArea() {
             $("form").show();
+        }
+
+        function artistLinkClicked() {
+            redirect('/artists', 'id=' + $("#song-page-artist-link").attr("artist_id"));
         }
 
     </script>

@@ -9,23 +9,23 @@ var router = express.Router();
 router.use(bodyparser.urlencoded({extended: true}));
  
 router.post('/', function(req, res) {
-    var token = req.query.access_token;
+    var access_token = req.query.access_token;
     var type = req.query.type;
 
     if(type == "lyrics") {
 
         db.insertLyrics(req.query.id, req.body.lyrics);
 
-        if(token) {       
+        if(access_token) {       
             res.render('thankPage', {
-                id:req.query.id,
-                isLogged:true
+                id: req.query.id,
+                isLogged: true
             });
         }
         else {
             res.render('thankPage', {
-                id:req.query.id, 
-                isLogged:false
+                id: req.query.id, 
+                isLogged: false
             });
         }
     }

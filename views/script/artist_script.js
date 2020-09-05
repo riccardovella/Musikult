@@ -1,5 +1,4 @@
-var url = new URL(window.location.href);
-var token = url.searchParams.get("access_token");
+
 //animation for best songs
 $(document).ready(function() {
     $(".song-div").mouseenter(function(){
@@ -8,12 +7,9 @@ $(document).ready(function() {
     $(".song-div").mouseleave(function(){
         $(this).css("background-color", "rgba(143, 143, 143, 0)");
     });
-    //redirecting to selected song page with the token if you logged in or without token if not
+    //redirecting to selected song page
     $(".song-div").click(function() {
-        if(token)
-            window.location.href = "http://localhost:3000/songs?access_token=" + token + "&id=" + $(this).attr("id");
-        else
-            window.location.href = "http://localhost:3000/songs?id=" + $(this).attr("id");
+        redirect('/songs', 'id=' + $(this).attr("id"));    
     });
 });
 
@@ -83,7 +79,7 @@ $(document).ready(function() {
     });
     //redirect to the selected releated artist page 
     $(".related-artist").click(function() {
-        window.location.href = "http://localhost:3000/artists" + "?access_token=" + token + "&" + "id=" + $(this).attr("id") + "s";
+        redirect('/artists', 'id=' + $(this).attr("id") + 's');
     });
     
 });

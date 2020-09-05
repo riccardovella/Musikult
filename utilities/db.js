@@ -1,10 +1,12 @@
 // musikult database has one table which contains lyrics from songs
 /*
-   ______________________ 
-  |        lyrics        |
-  |______________________|
-  |  id   |    text      |
-  |_______|______________|
+   _____________________________________
+  |                                     |
+  |               lyrics                |
+  |_____________________________________|
+  |       |              |              |
+  |  id   |    text      |  timestamps  |
+  |_______|______________|______________|
                            
 */
 
@@ -17,8 +19,6 @@ require('dotenv').config();
 
 const password  = process.env.DB_PASSWORD;
 const DBNAME    = "musikultrc"; 
-
-console.log(password);
 
 // create connection with the database musikult
 var con = mysql.createConnection({
@@ -47,9 +47,9 @@ con.connect(function(err) {
 
     // create table if not created
     con.query("CREATE TABLE lyrics (id int NOT NULL, text varchar(10000), timestamps varchar(1000), PRIMARY KEY (id))", function(err, result) {
-        if (err && err.errno == 1050) log("Table found");
+        if (err && err.errno == 1050) log("Table found\n");
         else if (err) throw err;
-        else log("Table created");         
+        else log("Table created\n");         
     });
     
 });
@@ -85,8 +85,7 @@ exports.insertLyrics = function(id, text) { insertLyrics(id, text); }
 
 exports.findLyrics = function(id, song_name, artist_name, callback) {
 
-    log("Requesting lyrics for the song " + song_name + " by " + artist_name + 
-                "; id: " + id + "\n");
+    //log("Requesting lyrics for the song " + song_name + " by " + artist_name + "; id: " + id + "\n");
 
     // get lyrics of the song with id :id
     var sql = "SELECT text, timestamps FROM lyrics WHERE id = " + id;
@@ -97,7 +96,7 @@ exports.findLyrics = function(id, song_name, artist_name, callback) {
         //id is unique so there is a max of one result
         //if lyrics are in the database, retrieve them
         if(result[0]) {
-            log("Found a result in database\n");
+            //log("Found a result in database\n");
             filterLyrics(result[0].text, function(lyrics) {
                 if(result[0].timestamps) {
                     filterTimestamps(result[0].timestamps, function(timestamps) {
@@ -112,8 +111,8 @@ exports.findLyrics = function(id, song_name, artist_name, callback) {
 
         // if nothing is found
         else {
-            log("No result found in database");
-            log("Requesting lyrics to Happi\n");
+            //log("No result found in database");
+            //log("Requesting lyrics to Happi\n");
 
             // makes a lyrics request to happi
             happi.getSongInfo(song_name, artist_name, function(lyrics) {
@@ -121,12 +120,12 @@ exports.findLyrics = function(id, song_name, artist_name, callback) {
                 // if lyrics are found
                 if(lyrics) {
 
-                    log("Lyrics found");
-                    log("Inserting data in the database\n");
+                    //log("Lyrics found");
+                    //log("Inserting data in the database\n");
 
                     // inserts lyrics in the database to make minimum amount of api calls
                     insertLyrics(id, lyrics);
-                    log("Lyrics inserted in database\n");
+                    //log("Lyrics inserted in database\n");
 
                     filterLyrics(lyrics, function(filtered) {
                         callback(filtered);
@@ -134,7 +133,7 @@ exports.findLyrics = function(id, song_name, artist_name, callback) {
                     
                 }
                 else {
-                    log("Lyrics not found\n");
+                    //log("Lyrics not found\n");
                     callback(null);
                 }
             });

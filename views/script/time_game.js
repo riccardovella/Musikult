@@ -5,7 +5,7 @@ var player;
 window.onSpotifyWebPlaybackSDKReady = () => {
     player = new Spotify.Player({
         name: 'Time Game Musikult Player',
-        getOAuthToken: cb => { cb(token); }
+        getOAuthToken: cb => { cb(access_token); }
     });
 
     // Error handling
@@ -43,7 +43,7 @@ var lyrics_count;
 var lyrics_skips;
 
 var time_game_started = false;
-var time_lyrics_is_open = false;
+time_lyrics_is_open = false;
 
 var song_paused;
 var first_change;
@@ -56,8 +56,11 @@ var time_game_text = $("#time-game-text");
 function timeLyrics() {
 
     // initialize all state variables
+    if(karaoke_active) return;
     if(time_lyrics_is_open) return;
     time_lyrics_is_open = true;
+
+    time_game_started = false;
 
     animate_text = true;
 
@@ -70,15 +73,30 @@ function timeLyrics() {
     first_change = false;
     game_finished = false;
 
+    time_game_text.empty();
+
+    $("#karaoke-button").hide();
+
     player.connect();
 
     timestamps = [];
     lyrics = [""]
     var string = $(".ll").attr("content");
     var index = 0;
+    var skip = false;
     for(var i = 0; i < string.length; i++) {
-        if(string[i] == '\n') lyrics[++index] = "";                            
-        else lyrics[index] += string[i];
+
+        if(string[i] == '\n') {
+            if(lyrics[index] != "") lyrics[++index] = "";
+            skip = false;
+        }
+        
+        else if(string[i] == '[') 
+            skip = true;           
+        else if(string[i] == ']') 
+            skip = false;
+           
+        else if(!skip) lyrics[index] += string[i];
     }    
 
     time_game.show();
@@ -153,8 +171,7 @@ function start_time_game() {
     // play song
     setPause();
     changeDevice(device);
-    play_song(songid, token);
-    
+    play_song(songid);
     
 }
 
@@ -163,24 +180,28 @@ function storeTime() {
     if(timestamps.length == lyrics.length - lyrics_skips) return;
 
     // first line animation
-    active_line.animate({ top: "0" }, 1000);
+    active_line.finish();
+    active_line.animate({ top: "0" }, 700);
     active_line.fadeOut();
     active_line.remove();
 
     // second line animation
-    second_line.animate({top: "30%", "color": "rgb(255, 255, 255, 0.8"}, 1000);
+    second_line.finish();
+    second_line.animate({top: "30%", "color": "rgb(255, 255, 255, 0.8"}, 700);
     second_line.removeClass("second-line");
     second_line.addClass("active-line");
     active_line = second_line;
 
     // third line animation
-    third_line.animate({top: "60%", color: "rgb(255, 255, 255, 0.45)"}, 1000);
+    third_line.finish();
+    third_line.animate({top: "60%", color: "rgb(255, 255, 255, 0.45)"}, 700);
     third_line.removeClass("third-line");
     third_line.addClass("second-line");
     second_line = third_line;
 
     // fourth line animation
-    fourth_line.animate({top: "80%"}, 1000);
+    fourth_line.finish();
+    fourth_line.animate({top: "80%"}, 700);
     fourth_line.removeClass("fourth-line");
     fourth_line.addClass("third-line");
     third_line = fourth_line;
@@ -245,16 +266,6 @@ function gameFinished() {
         };
 
         // store data 
-        /*var body = {
-            "timestamps": timestamps_string,
-        }
-    
-        var url = "http://localhost:3000/submit" + window.location.search + "&type=timestamps";
-    
-        var httpRequest = new XMLHttpRequest();
-        httpRequest.open("POST", url, true);
-        httpRequest.send(JSON.stringify(body));*/
-
         $.ajax({
             url: 'http://localhost:3000/submit' + window.location.search + '&type=timestamps',
             dataType: 'text',
@@ -284,6 +295,8 @@ function exit_time_game() {
         time_game_text.empty();
     });
 
+    $("#karaoke-button").show();
+
     window.removeEventListener("keypress", keyPress, true);
 
     time_game_started = false;
@@ -294,6 +307,7 @@ function exit_time_game() {
 
 function checkChanges(state) {
 
+    if(!time_game_started) return;
     if(game_finished) return;
 
     if(state.track_window.current_track.id == songid && state.position == 0) {
@@ -321,7 +335,7 @@ function checkChanges(state) {
 
         window.removeEventListener("keypress", keyPress, true);
 
-        time_game_text.before("<p class='display-3 time-game-start-text' style='top:10%'> The song has been paused, play it to continue </p>");
+        time_game_text.append("<p class='display-3 time-game-start-text' style='top:10%'> The song has been paused, play it to continue </p>");
         $(".time-game-start-text").hide();
         $(".time-game-start-text").fadeIn();
 

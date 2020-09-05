@@ -191,9 +191,9 @@ function geniusFilter(info) {					    //info is Genius JSON
 
 // To convert ids we have to search the best artist song in the genius search engine and 
 // retrive the informations about the artist 
-exports.spotifyToGeniusArtistId = function(token, id, func) {
+exports.spotifyToGeniusArtistId = function(spotify_access_token, refresh_token, id, func) {
 
-	spotify.getBestSong(token, id, function(song_name, artist_name) {
+	spotify.getBestSong(spotify_access_token, refresh_token, id, function(song_name, artist_name) {
 
 		// removes everything that is after the '(' symbol in the song title
 		// this is used to remove featurings and unnecessary parts to the title of the song
@@ -227,7 +227,7 @@ exports.spotifyToGeniusArtistId = function(token, id, func) {
 }
 
 // To convert artist ids from genius we just search for the artist in the spotify search engine
-exports.geniusToSpotifyArtistId = function(token, id, func) {
+exports.geniusToSpotifyArtistId = function(spotify_access_token, refresh_token, id, func) {
 
 	var options = {
 		url: API + "/artists/" + id,  /* https://api.genius.com/artists/:id */
@@ -241,7 +241,7 @@ exports.geniusToSpotifyArtistId = function(token, id, func) {
 
 		if (!error && response.statusCode == 200) {
 			
-			spotify.searchArtist(token, JSON.parse(body).response.artist.name, function(ids) {
+			spotify.searchArtist(spotify_access_token, refresh_token, JSON.parse(body).response.artist.name, function(ids) {
 				func(ids);
 			});
 
@@ -254,7 +254,7 @@ exports.geniusToSpotifyArtistId = function(token, id, func) {
 }
 
 // to convert songs we search for the song with the spotify search and retrieve first result
-exports.geniusToSpotifySongId = function(token, id, func) {
+exports.geniusToSpotifySongId = function(spotify_access_token, refresh_token, id, func) {
 
 	var options = {
 		url: API + "/songs/" + id,  /* https://api.genius.com/songs/:id */
@@ -268,7 +268,7 @@ exports.geniusToSpotifySongId = function(token, id, func) {
 
 		if (!error && response.statusCode == 200) {
 			
-			spotify.searchSong(token, JSON.parse(body).response.song.title, function(ids) {
+			spotify.searchSong(spotify_access_token, refresh_token, JSON.parse(body).response.song.title, function(ids) {
 				func(ids);
 			}, JSON.parse(body).response.song.primary_artist.name);
 

@@ -1,13 +1,19 @@
-const express = require('express');
+
 const request = require('request');
 const querystring = require('querystring');
 
-exports.getRelatedArtists = function(token, id, func) {
+require('dotenv').config();
+
+const spotify_client_id = process.env.SPOTIFY_CLIENT_ID;
+const spotify_client_secret = process.env.SPOTIFY_CLIENT_SECRET;
+
+
+function getRelatedArtists(access_token, refresh_token, id, func) {
 
     var options = {
         url: "https://api.spotify.com/v1/artists/" + id + "/related-artists",
         headers : {
-            'Authorization': 'Bearer ' + token
+            'Authorization': 'Bearer ' + access_token
         }
     };
     
@@ -16,17 +22,25 @@ exports.getRelatedArtists = function(token, id, func) {
             func(JSON.parse(body).artists);
         }
 
-        else 
-            console.log(error);
+        else if(response.statusCode == 401) {
+            reAuthorize(refresh_token, (new_access_token) => {
+                getRelatedArtists(new_access_token, refresh_token, id, func);
+            })
+        }
+
+        else {
+            printError(response);
+            func(null);
+        }
     });
 }
 
-exports.isInLibrary = function(token, id, func) {
+function isInLibrary(access_token, refresh_token, id, func) {
 
     var options = {
         url: "https://api.spotify.com/v1/me/tracks/contains?ids=" + id,
         headers : {
-            'Authorization': 'Bearer ' + token
+            'Authorization': 'Bearer ' + access_token
         }
     };
         
@@ -35,20 +49,26 @@ exports.isInLibrary = function(token, id, func) {
             func(JSON.parse(body));
         }
     
+        else if(response.statusCode == 401) {
+            reAuthorize(refresh_token, (new_access_token) => {
+                isInLibrary(new_access_token, refresh_token, id, func);
+            })
+        }
+
         else {
-            console.log("Error in add to library: " + response.statusCode + " " + response.statusMessage);
+            printError(response);
             func(null);
         }
     });
 
 }
 
-exports.getBestSong = function(token, id, func) {
+function getBestSong(access_token, refresh_token, id, func) {
 
     var options = {
         url: "https://api.spotify.com/v1/artists/" + id + "/top-tracks?country=US",
         headers : {
-            'Authorization': 'Bearer ' + token
+            'Authorization': 'Bearer ' + access_token
         }
     };
     
@@ -64,18 +84,26 @@ exports.getBestSong = function(token, id, func) {
             };
         }
 
-        else 
-            console.log(error);
+        else if(response.statusCode == 401) {
+            reAuthorize(refresh_token, (new_access_token) => {
+                getBestSong(new_access_token, refresh_token, id, func);
+            })
+        }
+
+        else {
+            printError(response);
+            func(null);
+        }
     });
     
 }
 
-function searchArtist(token, artist, func, song = null) {
+function searchArtist(access_token, refresh_token, artist, func, song = null) {
 
     var options = {
-        url: "https://api.spotify.com/v1/search?type=artist&q="+artist,
+        url: "https://api.spotify.com/v1/search?type=artist&q=" + artist,
         headers : {
-            'Authorization': 'Bearer ' + token
+            'Authorization': 'Bearer ' + access_token
         }
     };
     
@@ -87,18 +115,26 @@ function searchArtist(token, artist, func, song = null) {
                 func(null);
         }
 
-        else 
-            console.log(error);
+        else if(response.statusCode == 401) {
+            reAuthorize(refresh_token, (new_access_token) => {
+                searchArtist(new_access_token, refresh_token, artist, func, song);
+            })
+        }
+
+        else {
+            printError(response);
+            func(null);
+        }
     });
 
 }
 
-function searchSong(token, song, func, artist = null) {
+function searchSong(access_token, refresh_token, song, func, artist = null) {
 
     var options = {
-        url: "https://api.spotify.com/v1/search?type=track&" + querystring.stringify({ q: song }),
+        url: "https://api.spotify.com/v1/search?type=track&" + querystring.stringify({ q: song + " " + artist }),
         headers : {
-            'Authorization': 'Bearer ' + token
+            'Authorization': 'Bearer ' + access_token
         }
     };
     
@@ -116,18 +152,26 @@ function searchSong(token, song, func, artist = null) {
             }
         }
 
-        else 
-            console.log("Error in search song: " + response.statusCode + " " + response.statusMessage);
+        else if(response.statusCode == 401) {
+            reAuthorize(refresh_token, (new_access_token) => {
+                searchSong(new_access_token, refresh_token, song, func, artist);
+            })
+        }
+
+        else {
+            printError(response);
+            func(null);
+        }
     });
 
 }
 
 // get user's top tracks
-exports.getTopTracks=function(token,func){
+function getTopTracks(access_token, refresh_token, func){
     var options = {
         url: "https://api.spotify.com/v1/me/top/tracks",
         headers : {
-            'Authorization': 'Bearer ' + token
+            'Authorization': 'Bearer ' + access_token
         }
     };
     
@@ -144,17 +188,25 @@ exports.getTopTracks=function(token,func){
             
         }
 
-        else 
-            console.log(error);    
+        else if(response.statusCode == 401) {
+            reAuthorize(refresh_token, (new_access_token) => {
+                getTopTracks(new_access_token, refresh_token, func);
+            })
+        }
+
+        else {
+            printError(response);
+            func(null);
+        } 
     });
 };
 
 // Get user's top artists
-exports.getTopArtists=function(token,func){
+function getTopArtists(access_token, refresh_token, func){
     var options = {
         url: "https://api.spotify.com/v1/me/top/artists",
         headers : {
-            'Authorization': 'Bearer ' + token
+            'Authorization': 'Bearer ' + access_token
         }
     };
     request.get(options, function callback(error, response, body) {		
@@ -170,9 +222,16 @@ exports.getTopArtists=function(token,func){
             }
         }
 
-        else {
-            console.log(error);
+        else if(response.statusCode == 401) {
+            reAuthorize(refresh_token, (new_access_token) => {
+                getTopArtists(new_access_token, refresh_token, func);
+            })
         }
+
+        else {
+            printError(response);
+            func(null);
+        } 
     });
 };
     
@@ -218,12 +277,12 @@ function tracksFilter(info1){
 
 // get user's account informations
 // used to get user's profile image and name
-exports.getUserInformations = function(token,func) {
+function getUserInformations(access_token, refresh_token, func) {
 
     var options = {
         url: "https://api.spotify.com/v1/me",
         headers : {
-            'Authorization': 'Bearer ' + token
+            'Authorization': 'Bearer ' + access_token
         }
     };
     
@@ -233,8 +292,16 @@ exports.getUserInformations = function(token,func) {
             func(z);
         }
 
-        else 
-            console.log(error);    
+        else if(response.statusCode == 401) {
+            reAuthorize(refresh_token, (new_access_token) => {
+                getUserInformations(new_access_token, refresh_token, func);
+            })
+        }
+
+        else {
+            printError(response);
+            func(null);
+        }   
     });
 }
 
@@ -253,11 +320,12 @@ function informationFilter(info2){
     return z;
     
 }
-exports.isFollowed=function(token,id,func){
+function isFollowed(access_token, refresh_token, id, func) {
+
     var options = {
         url: "https://api.spotify.com/v1/me/following/contains?type=artist&ids=" + id,
         headers : {
-            'Authorization': 'Bearer ' + token,
+            'Authorization': 'Bearer ' + access_token,
         }
     };
     request.get(options, function callback(error, response, body) {		
@@ -265,19 +333,26 @@ exports.isFollowed=function(token,id,func){
             func(JSON.parse(body));
         }
 
-        else {
-            console.log(error);
+        else if(response.statusCode == 401) {
+            reAuthorize(refresh_token, (new_access_token) => {
+                isFollowed(new_access_token, refresh_token, id, func);
+            })
         }
+
+        else {
+            printError(response);
+            func(null);
+        } 
     });
 }
 
 // get spotify's new releases (same for every account)
-exports.getNewReleases = function(token, func) {
+function getNewReleases(access_token, refresh_token, func) {
 
     var options = {
         url: "https://api.spotify.com/v1/browse/new-releases?country=US",
         headers : {
-            'Authorization': 'Bearer ' + token,
+            'Authorization': 'Bearer ' + access_token,
         }
     };
     request.get(options, function callback(error, response, body) {	
@@ -294,15 +369,60 @@ exports.getNewReleases = function(token, func) {
             func(singles);
         }
 
-        else {
-            console.log(error);
+        else if(response.statusCode == 401) {
+            reAuthorize(refresh_token, (new_access_token) => {
+                getNewReleases(new_access_token, refresh_token, func);
+            })
         }
+
+        else {
+            printError(response);
+            func(null);
+        } 
     });    
 }
 
-exports.searchArtist = function(token, artist, func) {
-    searchArtist(token, artist, func);
+
+// UTILITY FUNCTIONS
+
+function reAuthorize(refresh_token, callback) {
+
+    var authOptions = {
+        url: 'https://accounts.spotify.com/api/token',
+		form: {
+			client_id: spotify_client_id,
+			client_secret: spotify_client_secret,
+            grant_type: 'refresh_token',
+            refresh_token: refresh_token
+		},
+		json:true
+	}
+  
+	request.post(authOptions, function(error, response, body) {
+		if (!error && response.statusCode === 200) {
+  
+		  	var access_token = body.access_token;
+		  	callback(access_token);
+			
+		} else {
+			  printError(response);
+		}
+	});
 }
-exports.searchSong = function(token, song, func) {
-    searchSong(token, song, func);
+
+function printError(response) {
+    console.log("[SPOTIFY ERROR]: " + response.statusCode + " " + response.statusMessage 
+    + "\nDate: " + response.headers.date + "\nhref: " + response.href + '\n');
 }
+
+// EXPORTS
+exports.getRelatedArtists = getRelatedArtists;
+exports.isInLibrary = isInLibrary;
+exports.getBestSong = getBestSong;
+exports.getTopTracks =  getTopTracks;
+exports.getTopArtists = getTopArtists;
+exports.searchArtist = searchArtist;
+exports.searchSong = searchSong;
+exports.getUserInformations = getUserInformations;
+exports.isFollowed = isFollowed;
+exports.getNewReleases = getNewReleases;
