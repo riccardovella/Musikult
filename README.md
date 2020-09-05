@@ -1,5 +1,4 @@
 # Musikult
-Progetto per il corso Reti di Calcolatori - Sapienza (2019-2020)
 
 <br>
 <p align="center">
