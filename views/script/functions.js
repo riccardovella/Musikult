@@ -32,3 +32,21 @@ function sendAjaxRequest(type, url, handler = () => {}, mode = true, body = null
     else httpRequest.send(JSON.stringify(body));
   
   }
+
+
+//call to get genius song id passing artist and song from spotify
+function geniusRef(artist, track) {
+
+    const ajaxUrl = "http://localhost:3000/api/tracks?track=" + track + "&artist=" + artist;
+       
+    sendAjaxRequest("GET", ajaxUrl, handleResponseGeniusRef);
+
+};
+//on call success redirect to the song page
+function handleResponseGeniusRef(e) {
+    if (e.target.readyState == 4 && e.target.status == 200) {
+        var id = (JSON.parse(e.target.responseText)).id;
+        
+        redirect("/songs", "id=" + id);
+    }
+}

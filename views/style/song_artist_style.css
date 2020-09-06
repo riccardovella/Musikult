@@ -64,6 +64,8 @@ body {
 
 .song-div {
     height: 80px;
+
+    cursor: pointer;
 }
 
 .related-artists-title {
@@ -91,6 +93,8 @@ body {
 .related-artist {
     width: 300px;
     height: 300px;
+
+    cursor: pointer;
 }
 
 .related-artist-img {

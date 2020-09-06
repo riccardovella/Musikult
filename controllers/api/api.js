@@ -153,7 +153,15 @@ router.get('/tracks', function(req, res) {
         res.status(400).send("Invalid Parameters");
 
     else {
+
+        for(let i = 3; i < track.length; i++) {
+            if(track[i] == "(" || track[i] == "-") {
+                track = track.slice(0,i)
+            }
+        }
+
         genius.geniusSearch(track + " " + artist, function(result) {
+
             if(!result || result.songs[0] == null) 
                 res.status(404).send("Not Found");
             else 

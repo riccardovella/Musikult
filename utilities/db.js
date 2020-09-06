@@ -83,62 +83,66 @@ function insertLyrics(id,text) {
 
 exports.insertLyrics = function(id, text) { insertLyrics(id, text); }
 
-exports.findLyrics = function(id, song_name, artist_name, callback) {
+exports.findLyrics = function(id, song_name, artist_name) {
 
-    //log("Requesting lyrics for the song " + song_name + " by " + artist_name + "; id: " + id + "\n");
+    return new Promise((resolve, reject) => {
 
-    // get lyrics of the song with id :id
-    var sql = "SELECT text, timestamps FROM lyrics WHERE id = " + id;
-    con.query(sql, function (err, result) {
-        if (err) 
+        //log("Requesting lyrics for the song " + song_name + " by " + artist_name + "; id: " + id + "\n");
+
+        // get lyrics of the song with id :id
+        var sql = "SELECT text, timestamps FROM lyrics WHERE id = " + id;
+        con.query(sql, function (err, result) {
+            if (err) 
             log(err.message);      
 
-        //id is unique so there is a max of one result
-        //if lyrics are in the database, retrieve them
-        if(result[0]) {
-            //log("Found a result in database\n");
-            filterLyrics(result[0].text, function(lyrics) {
-                if(result[0].timestamps) {
-                    filterTimestamps(result[0].timestamps, function(timestamps) {
-                        callback(lyrics, timestamps);
-                    })
-                }
-                else {
-                    callback(lyrics, null);
-                }
-            })
-        }
+            //id is unique so there is a max of one result
+            //if lyrics are in the database, retrieve them
+            if(result[0]) {
+                //log("Found a result in database\n");
+                filterLyrics(result[0].text, function(lyrics) {
+                    if(result[0].timestamps) {
+                        filterTimestamps(result[0].timestamps, function(timestamps) {
+                            resolve({ lyrics: lyrics, timestamps: timestamps });
+                        })
+                    }
+                    else {
+                        resolve({ lyrics: lyrics, timestamps: null });
+                    }
+                })
+            }
 
-        // if nothing is found
-        else {
-            //log("No result found in database");
-            //log("Requesting lyrics to Happi\n");
+            // if nothing is found
+            else {
+                //log("No result found in database");
+                //log("Requesting lyrics to Happi\n");
 
-            // makes a lyrics request to happi
-            happi.getSongInfo(song_name, artist_name, function(lyrics) {
+                // makes a lyrics request to happi
+                happi.getSongInfo(song_name, artist_name, function(lyrics) {
 
-                // if lyrics are found
-                if(lyrics) {
+                    // if lyrics are found
+                    if(lyrics) {
 
-                    //log("Lyrics found");
-                    //log("Inserting data in the database\n");
+                        //log("Lyrics found");
+                        //log("Inserting data in the database\n");
 
-                    // inserts lyrics in the database to make minimum amount of api calls
-                    insertLyrics(id, lyrics);
-                    //log("Lyrics inserted in database\n");
+                        // inserts lyrics in the database to make minimum amount of api calls
+                        insertLyrics(id, lyrics);
+                        //log("Lyrics inserted in database\n");
 
-                    filterLyrics(lyrics, function(filtered) {
-                        callback(filtered);
-                    });
+                        filterLyrics(lyrics, function(filtered) {
+                            resolve({ lyrics: filtered, timestmaps: null });
+                        });
                     
-                }
-                else {
-                    //log("Lyrics not found\n");
-                    callback(null);
-                }
-            });
-        }
-    });
+                    }
+                    else {
+                        //log("Lyrics not found\n");
+                        resolve({ lyrics: null, timestamps: null });
+                    }   
+                });
+            }
+        });
+
+    })
 }
 
 exports.insertTimestamps = function(id, timestamps) {

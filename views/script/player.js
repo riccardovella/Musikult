@@ -391,7 +391,7 @@ $("#title").mouseleave(function() {
 })
 
 $("#title").click(function() {
-  //redirect('/songs', 'id=' + playing_track_id + "s");
+  geniusRef(document.getElementById("artist").innerHTML ,document.getElementById("title").innerHTML);
 })
 
   // artist

@@ -19,14 +19,20 @@
 .artist-card {
 
     width: 300px;
-    height: 400px;
+    height: 300px;
+    margin-bottom: 150px;
+
+    cursor: pointer;
 
 }
 
 .song-card {
 
     width: 300px;
-    height: 400px;
+    height: 300px;
+    margin-bottom: 150px;
+
+    cursor: pointer;
 
 }
 
@@ -46,10 +52,17 @@
 
 }
 
+.carousel {
+
+    cursor: pointer;
+    
+}
+
 .card-title {
 
-    position: relative; 
-    top: -200px;
+    position: absolute; 
+    top: 130px;
+    width: 300px;
     color: rgba(255, 255, 255, 0.8);
     text-align: center;
     font-size: 30px;

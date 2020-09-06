@@ -37,7 +37,7 @@ $(document).ready(function(){
     $(".song-card").click(function() {
         var artist=$(this).attr("artist-name");
         var song=$(this).attr("song-name");
-        geniusRef(artist,song)
+        geniusRef(artist, song);
         
     });
 });
@@ -64,34 +64,6 @@ $(document).ready(function() {
     })
 })
 
-const genius_access_token = "kG91TrvmqYf06aeYAOpgxFTXcmUAJ0N0wRCtbn7m-tHXsfGVDWULJAGro3dbQWfS";
-const API = "https://api.genius.com";
-//call to get genius song id passing artist and song from spotify
-function geniusRef(artist,song) {
-    for(let i = 3; i < song.length; i++) {
-        if(song[i] == "(" || song[i] == "-") {
-            song = song.slice(0,i)
-        }
-    }
-    artist = artist.replace(" ","%20");
-    song = song.replace(" ","%20");
 
-    var url = API + "/search?q=" + song + "%20" + artist + "&"+ "access_token=" + genius_access_token;
-    /* https://api.genius.com/search?q=:query */
-       
-    var httpRequest = new XMLHttpRequest();
-    httpRequest.onreadystatechange = handleResponse;
-    httpRequest.open("GET", url, false);
-    httpRequest.send();
-   
-};
-//on call success redirect to the song page
-function handleResponse(e) {
-    if (e.target.readyState == 4 && e.target.status == 200) {
-        var id = (JSON.parse(e.target.responseText)).response.hits[0].result.id;
-        
-        redirect("/songs", "id=" + id);
-    }
-}
 
 

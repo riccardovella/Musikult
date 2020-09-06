@@ -1,6 +1,7 @@
 
 const request = require('request');
 const querystring = require('querystring');
+const errorHandler = require('./errorHandler');
 
 require('dotenv').config();
 
@@ -8,62 +9,54 @@ const spotify_client_id = process.env.SPOTIFY_CLIENT_ID;
 const spotify_client_secret = process.env.SPOTIFY_CLIENT_SECRET;
 
 
-function getRelatedArtists(access_token, refresh_token, id, func) {
+function getRelatedArtists(access_token, id) {
 
-    var options = {
-        url: "https://api.spotify.com/v1/artists/" + id + "/related-artists",
-        headers : {
-            'Authorization': 'Bearer ' + access_token
-        }
-    };
-    
-    request.get(options, function callback(error, response, body) {
-        if (!error && response.statusCode == 200) {
-            func(JSON.parse(body).artists);
-        }
+    return new Promise((resolve, reject) => {
 
-        else if(response.statusCode == 401) {
-            reAuthorize(refresh_token, (new_access_token) => {
-                getRelatedArtists(new_access_token, refresh_token, id, func);
-            })
-        }
-
-        else {
-            printError(response);
-            func(null);
-        }
-    });
-}
-
-function isInLibrary(access_token, refresh_token, id, func) {
-
-    var options = {
-        url: "https://api.spotify.com/v1/me/tracks/contains?ids=" + id,
-        headers : {
-            'Authorization': 'Bearer ' + access_token
-        }
-    };
+        var options = {
+            url: "https://api.spotify.com/v1/artists/" + id + "/related-artists",
+            headers : {
+                'Authorization': 'Bearer ' + access_token
+            }
+        };
         
-    request.get(options, function callback(error, response, body) {
-        if (!error && response.statusCode == 200) {
-            func(JSON.parse(body));
-        }
+        request.get(options, function callback(error, response, body) {
+            if (!error && response.statusCode == 200) {
+                resolve(JSON.parse(body).artists);
+            }
     
-        else if(response.statusCode == 401) {
-            reAuthorize(refresh_token, (new_access_token) => {
-                isInLibrary(new_access_token, refresh_token, id, func);
-            })
-        }
-
-        else {
-            printError(response);
-            func(null);
-        }
-    });
-
+            else {
+                reject(errorHandler.Error(response, "spotify"));
+            }
+        });
+    })  
 }
 
-function getBestSong(access_token, refresh_token, id, func) {
+function isInLibrary(access_token, id) {
+
+    return new Promise((resolve, reject) => {
+
+        var options = {
+            url: "https://api.spotify.com/v1/me/tracks/contains?ids=" + id,
+            headers : {
+                'Authorization': 'Bearer ' + access_token
+            }
+        };
+            
+        request.get(options, function callback(error, response, body) {
+            if (!error && response.statusCode == 200) {
+                resolve(JSON.parse(body));
+            }
+    
+            else {
+                reject(errorHandler.Error(response, "spotify"));
+            }
+        });
+
+    })
+}
+
+function getBestSong(access_token, id, func) {
 
     var options = {
         url: "https://api.spotify.com/v1/artists/" + id + "/top-tracks?country=US",
@@ -84,21 +77,14 @@ function getBestSong(access_token, refresh_token, id, func) {
             };
         }
 
-        else if(response.statusCode == 401) {
-            reAuthorize(refresh_token, (new_access_token) => {
-                getBestSong(new_access_token, refresh_token, id, func);
-            })
-        }
-
         else {
-            printError(response);
-            func(null);
+            func(null, null, response);
         }
     });
     
 }
 
-function searchArtist(access_token, refresh_token, artist, func, song = null) {
+function searchArtist(access_token, artist, func, song = null) {
 
     var options = {
         url: "https://api.spotify.com/v1/search?type=artist&q=" + artist,
@@ -112,24 +98,17 @@ function searchArtist(access_token, refresh_token, artist, func, song = null) {
             if(JSON.parse(body).artists.items[0])
                 func(JSON.parse(body).artists.items[0].id);
             else 
-                func(null);
-        }
-
-        else if(response.statusCode == 401) {
-            reAuthorize(refresh_token, (new_access_token) => {
-                searchArtist(new_access_token, refresh_token, artist, func, song);
-            })
+                func(null, response);
         }
 
         else {
-            printError(response);
-            func(null);
+            func(null, response);
         }
     });
 
 }
 
-function searchSong(access_token, refresh_token, song, func, artist = null) {
+function searchSong(access_token, song, func, artist = null) {
 
     var options = {
         url: "https://api.spotify.com/v1/search?type=track&" + querystring.stringify({ q: song + " " + artist }),
@@ -140,99 +119,95 @@ function searchSong(access_token, refresh_token, song, func, artist = null) {
     
     request.get(options, function callback(error, response, body) {
         if (!error && response.statusCode == 200) {
+            
             var info = JSON.parse(body).tracks.items[0];
             if(info) {
                 if(!artist || toString(artist).toLowerCase == toString(info.artists[0].name).toLowerCase)
                     func(info.id);
                 else 
-                    func(null);
+                    func(null, response);
             }
             else {
-                func(null);
+                func(null, response);
             }
-        }
-
-        else if(response.statusCode == 401) {
-            reAuthorize(refresh_token, (new_access_token) => {
-                searchSong(new_access_token, refresh_token, song, func, artist);
-            })
         }
 
         else {
-            printError(response);
-            func(null);
+            func(null, response);
         }
     });
 
 }
 
 // get user's top tracks
-function getTopTracks(access_token, refresh_token, func){
-    var options = {
-        url: "https://api.spotify.com/v1/me/top/tracks",
-        headers : {
-            'Authorization': 'Bearer ' + access_token
-        }
-    };
+function getTopTracks(access_token) {
+
+    return new Promise((resolve, reject) =>  {
+
+        var options = {
+            url: "https://api.spotify.com/v1/me/top/tracks",
+            headers : {
+                'Authorization': 'Bearer ' + access_token
+            }
+        };
+        
+        request.get(options, function callback(error, response, body) {
+            if (!error && response.statusCode == 200) {
+
+                var b = JSON.parse(body);
+                if(b.total !=0) {
+                    var x = tracksFilter(b);
+                    resolve(x);
+                }
+
+                else{
+                    resolve(null);
+                }
+                
+            }
     
-    request.get(options, function callback(error, response, body) {
-        if (!error && response.statusCode == 200) {
-            var b = JSON.parse(body);
-            if(b.total !=0){
-                var x = tracksFilter(JSON.parse(body));
-                func(x);
-            }
-            else{
-                func(null);
-            }
-            
-        }
+            else {
+                reject(errorHandler.Error(response, "spotify"));
+            } 
+        });
 
-        else if(response.statusCode == 401) {
-            reAuthorize(refresh_token, (new_access_token) => {
-                getTopTracks(new_access_token, refresh_token, func);
-            })
-        }
+    })
 
-        else {
-            printError(response);
-            func(null);
-        } 
-    });
+    
 };
 
 // Get user's top artists
-function getTopArtists(access_token, refresh_token, func){
-    var options = {
-        url: "https://api.spotify.com/v1/me/top/artists",
-        headers : {
-            'Authorization': 'Bearer ' + access_token
-        }
-    };
-    request.get(options, function callback(error, response, body) {		
+function getTopArtists(access_token) {
 
-        if (!error && response.statusCode == 200) {
-            var a = JSON.parse(body)
-            if(a.total != 0) {              // if there are no artists it returns null
-                var y = artistFilter(JSON.parse(body));
-                func(y);
+    return new Promise((resolve, reject) => {
+
+        var options = {
+            url: "https://api.spotify.com/v1/me/top/artists",
+            headers : {
+                'Authorization': 'Bearer ' + access_token
             }
+        };
+        request.get(options, function callback(error, response, body) {		
+    
+            if (!error && response.statusCode == 200) {
+                var a = JSON.parse(body)
+                if(a.total != 0) {              // if there are no artists it returns null
+                    var y = artistFilter(JSON.parse(body));
+                    resolve(y);
+                }
+                else {
+                    resolve(null);
+                }
+            }
+    
             else {
-                func(null);
-            }
-        }
+                reject(errorHandler.Error(response, "spotify"));
+            } 
+        });
 
-        else if(response.statusCode == 401) {
-            reAuthorize(refresh_token, (new_access_token) => {
-                getTopArtists(new_access_token, refresh_token, func);
-            })
-        }
+    })
 
-        else {
-            printError(response);
-            func(null);
-        } 
-    });
+    
 };
     
 function artistFilter(info) {
@@ -277,32 +252,31 @@ function tracksFilter(info1){
 
 // get user's account informations
 // used to get user's profile image and name
-function getUserInformations(access_token, refresh_token, func) {
+function getUserInformations(access_token) {
 
-    var options = {
-        url: "https://api.spotify.com/v1/me",
-        headers : {
-            'Authorization': 'Bearer ' + access_token
-        }
-    };
+    return new Promise((resolve, reject) => {
+
+        var options = {
+            url: "https://api.spotify.com/v1/me",
+            headers : {
+                'Authorization': 'Bearer ' + access_token
+            }
+        };
+        
+        request.get(options, function callback(error, response, body) {
+
+            if (!error && response.statusCode == 200) {
+                var z = informationFilter(JSON.parse(body));
+                resolve(z);
+            }
     
-    request.get(options, function callback(error, response, body) {
-        if (!error && response.statusCode == 200) {
-            var z = informationFilter(JSON.parse(body));
-            func(z);
-        }
+            else {
+                reject(errorHandler.Error(response, "spotify"));
+            }   
 
-        else if(response.statusCode == 401) {
-            reAuthorize(refresh_token, (new_access_token) => {
-                getUserInformations(new_access_token, refresh_token, func);
-            })
-        }
+        });
 
-        else {
-            printError(response);
-            func(null);
-        }   
-    });
+    })   
 }
 
 function informationFilter(info2){ 
@@ -320,66 +294,64 @@ function informationFilter(info2){
     return z;
     
 }
-function isFollowed(access_token, refresh_token, id, func) {
+function isFollowed(access_token, id) {
 
-    var options = {
-        url: "https://api.spotify.com/v1/me/following/contains?type=artist&ids=" + id,
-        headers : {
-            'Authorization': 'Bearer ' + access_token,
-        }
-    };
-    request.get(options, function callback(error, response, body) {		
-        if (!error && response.statusCode == 200) {
-            func(JSON.parse(body));
-        }
+    return new Promise((resolve, reject) => {
 
-        else if(response.statusCode == 401) {
-            reAuthorize(refresh_token, (new_access_token) => {
-                isFollowed(new_access_token, refresh_token, id, func);
-            })
-        }
+        var options = {
+            url: "https://api.spotify.com/v1/me/following/contains?type=artist&ids=" + id,
+            headers : {
+                'Authorization': 'Bearer ' + access_token,
+            }
+        };
+        request.get(options, function callback(error, response, body) {		
+            if (!error && response.statusCode == 200) {
+                resolve(JSON.parse(body));
+            }
+    
+            else {
+                reject(errorHandler.Error(response, "spotify"));
+            } 
+        });
 
-        else {
-            printError(response);
-            func(null);
-        } 
-    });
+    })
 }
 
 // get spotify's new releases (same for every account)
-function getNewReleases(access_token, refresh_token, func) {
+function getNewReleases(access_token) {
 
-    var options = {
-        url: "https://api.spotify.com/v1/browse/new-releases?country=US",
-        headers : {
-            'Authorization': 'Bearer ' + access_token,
-        }
-    };
-    request.get(options, function callback(error, response, body) {	
+    return new Promise((resolve, reject) => {
 
-        if (!error && response.statusCode == 200) {
-            var singles = [];
-            var items = JSON.parse(body).albums.items;
-            for(var i = 0; i < items.length; i++) {
-                if(items[i].album_type == 'single') {   // return only singles 
-                    singles.push(items[i]);
-                    if(singles.length >= 5) break; 
-                }  
+        var options = {
+            url: "https://api.spotify.com/v1/browse/new-releases?country=US",
+            headers : {
+                'Authorization': 'Bearer ' + access_token,
             }
-            func(singles);
-        }
+        };
+    
+        request.get(options, function callback(error, response, body) {	
+    
+            if (!error && response.statusCode == 200) {
 
-        else if(response.statusCode == 401) {
-            reAuthorize(refresh_token, (new_access_token) => {
-                getNewReleases(new_access_token, refresh_token, func);
-            })
-        }
+                var singles = [];
+                var items = JSON.parse(body).albums.items;
+                for(var i = 0; i < items.length; i++) {
+                    if(items[i].album_type == 'single') {   // return only singles 
+                        singles.push(items[i]);
+                        if(singles.length >= 5) break; 
+                    }  
+                }
 
-        else {
-            printError(response);
-            func(null);
-        } 
-    });    
+                resolve(singles);
+            }
+    
+            else {
+                reject(errorHandler.Error(response, "spotify"));
+            } 
+        });
+
+    })
+    
 }
 
 
@@ -411,7 +383,7 @@ function reAuthorize(refresh_token, callback) {
 }
 
 function printError(response) {
-    console.log("[SPOTIFY ERROR]: " + response.statusCode + " " + response.statusMessage 
+    console.log("[ERROR]: " + response.statusCode + " " + response.statusMessage 
     + "\nDate: " + response.headers.date + "\nhref: " + response.href + '\n');
 }
 
@@ -426,3 +398,5 @@ exports.searchSong = searchSong;
 exports.getUserInformations = getUserInformations;
 exports.isFollowed = isFollowed;
 exports.getNewReleases = getNewReleases;
+
+exports.reAuthorize = reAuthorize;

@@ -1,74 +1,107 @@
 const express = require("express");
 const genius = require("../utilities/genius.js");
 const spotify = require("../utilities/spotify.js");
+const errorHandler = require("../utilities/errorHandler.js");
 
 var router = express.Router();
 
 router.get('/', function(req, res) {
 
-    var access_token = req.query.access_token;
-    var refresh_token = req.query.refresh_token;
-    var id = req.query.id;
+    getData(req, res);
 
-    // id could be either a genius id or a spotify id;
-    // if is a spotify id its last character is an 's'
-    // if it's so, it is removed 
-    var ids = id.slice(0,id.length -1);
-
-    if(id.charAt(id.length - 1) == 's') { //if id is from spotify converts it
-        
-        id = id.substring(0, id.length-1);
-        
-        genius.spotifyToGeniusArtistId(access_token, refresh_token, id, function(geniusId) {
-            genius.getArtistInfo(geniusId, function(artistInfo) {
-                if(access_token) {
-                    spotify.isFollowed(access_token, refresh_token, ids, function(isFollowed) {
-                        spotify.getRelatedArtists(access_token, refresh_token, id, function(relatedArtists) {
-                            res.render('artist', {
-                                info: artistInfo, 
-                                related_artists: relatedArtists,
-                                follow: isFollowed,
-                                id : ids,
-                                isLogged: true
-                            });
-                        });
-                    });
-                }
-                else res.render('artist', {
-                    info: artistInfo, 
-                    related_artists: null,
-                    isLogged: false
-                });
-            }); 
-        });
-    }
-
-    else { //if id is from genius 
-
-        genius.getArtistInfo(id, function(artistInfo) {
-            if(access_token) {
-                genius.geniusToSpotifyArtistId(access_token, refresh_token, id, function(spotifyId) {
-                    spotify.getRelatedArtists(access_token, refresh_token, spotifyId, function(relatedArtists) {
-                        spotify.isFollowed(access_token, refresh_token, spotifyId, function(obj3) {
-                            res.render('artist', {
-                                info: artistInfo, 
-                                related_artists: relatedArtists, 
-                                follow: obj3, 
-                                id: spotifyId,
-                                isLogged: true
-                            });
-                        });
-                    });
-                })
-            }
-            else res.render('artist', {
-                info: artistInfo, 
-                related_artists: null, 
-                follow: null,
-                isLogged: false
-            });
-        });
-    }
 });
+
+
+const getData = async function (req, res) {
+
+    const access_token  = req.query.access_token;
+    const refresh_token = req.query.refresh_token;
+    const id            = req.query.id;
+
+    var geniusId;
+    var spotifyId;
+
+    try {
+
+        if(access_token) {
+
+            if(id.charAt(id.length - 1) == 's') { //if id is from spotify
+            
+                spotifyId = id.substring(0, id.length-1);
+                geniusId = await genius.spotifyToGeniusArtistId(access_token, spotifyId);
+        
+            }
+        
+            else {
+    
+                geniusId = id;
+                spotifyId = await genius.geniusToSpotifyArtistId(access_token, geniusId);
+    
+            }
+    
+            const artistInfoPromise        = genius.getArtistInfo(geniusId);
+            const isFollowedPromise        = spotify.isFollowed(access_token, spotifyId);
+            const relatedArtistsPromise    = spotify.getRelatedArtists(access_token, spotifyId);
+
+            const [artistInfo, isFollowed, relatedArtists] = await Promise.all([
+                artistInfoPromise, isFollowedPromise, relatedArtistsPromise
+            ]);
+    
+            res.render('artist', {
+                info:               artistInfo, 
+                related_artists:    relatedArtists,
+                follow:             isFollowed,
+                spotifyId :         spotifyId,
+                isLogged:           true
+            });
+    
+        }
+    
+        else {                                    // if there is no access token the id CANNOT be a spotify id
+    
+            geniusId = id;
+    
+            const artistInfo        = await genius.getArtistInfo(geniusId);
+    
+            res.render('artist', {
+                info:               artistInfo, 
+                related_artists:    null,
+                follow:             null,
+                spotifyId :         null,
+                isLogged:           false
+            });
+    
+        }
+
+    }
+
+    catch(error) {
+
+        // if the error is from spotify and the code is 401 it means that the access token is expired
+        // in this case a new one is retrieved and the page is reloaded
+        if(error.source == 'spotify' && error.statusCode == 401) {
+
+            spotify.reAuthorize(refresh_token, (new_access_token) => {
+                res.redirect('/artists' + '?' +
+                    querystring.stringify({
+                        access_token: new_access_token,
+                        refresh_token: refresh_token,
+                        id: id
+                    })
+                )
+            })
+
+        }
+
+        // the error can not be handled properly so its displayed and a 500: Server Internal Error is sent
+        else {
+            errorHandler.display(error);
+            res.sendStatus(500);
+        }
+
+    }
+
+}
+
 
 module.exports = router;

@@ -2,6 +2,8 @@ const querystring = require('querystring');
 const request = require('request');
 const spotify = require('./spotify');
 
+const errorHandler = require('./errorHandler');
+
 require('dotenv').config();
 
 const access_token = process.env.GENIUS_ACCESS_TOKEN;
@@ -9,53 +11,60 @@ const access_token = process.env.GENIUS_ACCESS_TOKEN;
 const API = "https://api.genius.com";
 
 // Genius getter for a specific song
-exports.getSongInfo = function(id, func) {
+function getSongInfo(id) {
 
-	var options = {
-		url: API + "/songs/" + id + "?text_format=plain",    /* https://api.genius.com/songs/:id */
-		headers: {
-			'Authorization' : 'Bearer ' + access_token
-		}
-	};
+	return new Promise((resolve, reject) => {
 
-	// request to genius API
-	request(options, function callback(error, response, body) {
+		var options = {
+			url: API + "/songs/" + id + "?text_format=plain",    /* https://api.genius.com/songs/:id */
+			headers: {
+				'Authorization' : 'Bearer ' + access_token
+			}
+		};
+	
+		// request to genius API
+		request(options, function callback(error, response, body) {
+	
+			if (!error && response.statusCode == 200) {
+				descriptionCleaning(JSON.parse(body).response.song, (result) => resolve(result));
+			}
+	
+			else {
+				reject(errorHandler.Error(response, "genius"));
+			}
+		});
 
-		if (!error && response.statusCode == 200) {
-			descriptionCleaning(JSON.parse(body).response.song, func);
-		}
-
-		else 
-			console.log(error);
-	});
-
+	})
 };
 
 // Genius getter for a specific artist
-exports.getArtistInfo = function(id, func) {
+const getArtistInfo = function(id) {
 
-	var options = {
-		url: API + "/artists/" + id + "?text_format=plain",  /* https://api.genius.com/artists/:id */
-		headers: {
-			'Authorization' : 'Bearer ' + access_token
-		}
-	};
+	return new Promise((resolve, reject) => {
 
-	//request to genius API to get artist informations
-	request(options, function callback(error, response, body) {
+		var options = {
+			url: API + "/artists/" + id + "?text_format=plain",  /* https://api.genius.com/artists/:id */
+			headers: {
+				'Authorization' : 'Bearer ' + access_token
+			}
+		};
+	
+		//request to genius API to get artist informations
+		request(options, function callback(error, response, body) {
+	
+			if (!error && response.statusCode == 200) {
+				descriptionCleaning(JSON.parse(body).response.artist, function(artist_info) {
+					getArtistSongs(id, function(songs_info) {
+						resolve({ artist: artist_info, songs: songs_info });
+					})
+				});
+			}
+	
+			else 
+				reject(errorHandler.Error(response, "genius"));
+		});
 
-		if (!error && response.statusCode == 200) {
-			descriptionCleaning(JSON.parse(body).response.artist, function(artist_info) {
-				getArtistSongs(id, function(songs_info) {
-					func({ artist: artist_info, songs: songs_info });
-				})
-			});
-		}
-
-		else 
-			console.log(error);
-	});
-
+	})
 }
 
 // Genius getter for a specific artist's popular songs
@@ -191,91 +200,122 @@ function geniusFilter(info) {					    //info is Genius JSON
 
 // To convert ids we have to search the best artist song in the genius search engine and 
 // retrive the informations about the artist 
-exports.spotifyToGeniusArtistId = function(spotify_access_token, refresh_token, id, func) {
+const spotifyToGeniusArtistId = function(spotify_access_token, id) {
 
-	spotify.getBestSong(spotify_access_token, refresh_token, id, function(song_name, artist_name) {
+	return new Promise((resolve, reject) => {
 
-		// removes everything that is after the '(' symbol in the song title
-		// this is used to remove featurings and unnecessary parts to the title of the song
-		// because those parts could cause the search to fail
-		for(let i = 5; i < song_name.length; i++) {
-			if(song_name[i] == "(" || song_name[i] == "-") {
-				song_name = song_name.slice(0,i)
+		spotify.getBestSong(spotify_access_token, id, function(song_name, artist_name, response) {
+
+			// if there is an error the function above returns the respnse message in the callback
+			if(song_name === null) {
+				reject(errorHandler.Error(response, "spotify")) 
 			}
-		}
-		
-		var options = {								/* https://api.genius.com/search?q=:query */
-			url: API + "/search?" + querystring.stringify({ q: song_name + " " + artist_name }), 
-			headers: {
-				'Authorization': 'Bearer ' + access_token
-			 }
-		};
-	
-		//makes the request to Genius Api to obtain the research data
-		request(options, function callback(error, response, body) {
+
+			else {
+
+				// removes everything that is after the '(' symbol in the song title
+				// this is used to remove featurings and unnecessary parts to the title of the song
+				// because those parts could cause the search to fail
+				for(let i = 5; i < song_name.length; i++) {
+					if(song_name[i] == "(" || song_name[i] == "-") {
+						song_name = song_name.slice(0,i)
+					}
+				}
+				
+				var options = {								/* https://api.genius.com/search?q=:query */
+					url: API + "/search?" + querystring.stringify({ q: song_name + " " + artist_name }), 
+					headers: {
+						'Authorization': 'Bearer ' + access_token
+					}
+				};
 			
-			if (!error && response.statusCode == 200) {
-				var new_id = JSON.parse(body).response.hits[0].result.primary_artist.id;
-				func(new_id);
+				//makes the request to Genius Api to obtain the research data
+				request(options, function callback(error, response, body) {
+					
+					if (!error && response.statusCode == 200) {
+						var new_id = JSON.parse(body).response.hits[0].result.primary_artist.id;
+						resolve(new_id);
+					}
+					
+					else 
+						reject(errorHandler.Error(response, "genius"));
+			
+				});  
+
 			}
-			
-			else 
-				console.log(error);
-	
-		});  
-	});
+
+		});
+
+	})	
 }
 
 // To convert artist ids from genius we just search for the artist in the spotify search engine
-exports.geniusToSpotifyArtistId = function(spotify_access_token, refresh_token, id, func) {
+const geniusToSpotifyArtistId = function(spotify_access_token, id) {
 
-	var options = {
-		url: API + "/artists/" + id,  /* https://api.genius.com/artists/:id */
-		headers: {
-			'Authorization' : 'Bearer ' + access_token
-		}
-	};
+	return new Promise((resolve, reject) => {
 
-	//request to genius API to get artist informations
-	request(options, function callback(error, response, body) {
-
-		if (!error && response.statusCode == 200) {
-			
-			spotify.searchArtist(spotify_access_token, refresh_token, JSON.parse(body).response.artist.name, function(ids) {
-				func(ids);
-			});
-
-		}
-
-		else 
-			console.log(error);
-	});
+		var options = {
+			url: API + "/artists/" + id,  /* https://api.genius.com/artists/:id */
+			headers: {
+				'Authorization' : 'Bearer ' + access_token
+			}
+		};
 	
+		//request to genius API to get artist informations
+		request(options, function callback(error, response, body) {
+	
+			if (!error && response.statusCode == 200) {
+				
+				spotify.searchArtist(spotify_access_token, JSON.parse(body).response.artist.name, function(idSpotify, response) {
+					if(idSpotify != null)   resolve(idSpotify);
+					else 					reject(errorHandler.Error(response, "spotify"));
+				});
+	
+			}
+	
+			else 
+				reject(errorHandler.Error(response, "genius"));
+		});
+
+	})	
 }
 
 // to convert songs we search for the song with the spotify search and retrieve first result
-exports.geniusToSpotifySongId = function(spotify_access_token, refresh_token, id, func) {
+const geniusToSpotifySongId = function(spotify_access_token, id) {
 
-	var options = {
-		url: API + "/songs/" + id,  /* https://api.genius.com/songs/:id */
-		headers: {
-			'Authorization' : 'Bearer ' + access_token
-		}
-	};
+	return new Promise((resolve, reject) => {
 
-	//request to genius API to get song informations
-	request(options, function callback(error, response, body) {
-
-		if (!error && response.statusCode == 200) {
-			
-			spotify.searchSong(spotify_access_token, refresh_token, JSON.parse(body).response.song.title, function(ids) {
-				func(ids);
-			}, JSON.parse(body).response.song.primary_artist.name);
-
-		}
-
-		else 
-			console.log(error);
-	});
+		var options = {
+			url: API + "/songs/" + id,  /* https://api.genius.com/songs/:id */
+			headers: {
+				'Authorization' : 'Bearer ' + access_token
+			}
+		};
 	
+		//request to genius API to get song informations
+		request(options, function callback(error, response, body) {
+	
+			if (!error && response.statusCode == 200) {
+				
+				spotify.searchSong(spotify_access_token, JSON.parse(body).response.song.title, function(idSpotify, response) {
+					if(idSpotify != null) resolve(idSpotify);
+					else reject(errorHandler.Error(response, "spotify"));
+				}, JSON.parse(body).response.song.primary_artist.name);
+	
+			}
+	
+			else 
+				reject(errorHandler.Error(response, "genius"));
+		});
+
+	})
 }
+
+
+/***************ALL EXPORTS***************/
+exports.getSongInfo = getSongInfo;
+exports.getArtistInfo = getArtistInfo;
+
+exports.spotifyToGeniusArtistId = spotifyToGeniusArtistId;
+exports.geniusToSpotifyArtistId = geniusToSpotifyArtistId;
+exports.geniusToSpotifySongId = geniusToSpotifySongId;
