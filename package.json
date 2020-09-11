@@ -1,23 +1,22 @@
 {
   "name": "musikult",
   "version": "1.0.0",
-  "description": "Music portal ",
+  "description": "Music portal",
   "main": "app.js",
   "scripts": {
     "test": "test.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/simonepetruzzi/Musikult.git"
+    "url": "git+https://github.com/riccardovella/Musikult.git"
   },
-  "author": "Vella Riccardo, Petruzzi Simone",
+  "author": "Vella Riccardo",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/simonepetruzzi/Musikult/issues"
+    "url": "https://github.com/riccardovella/Musikult/issues"
   },
-  "homepage": "https://github.com/simonepetruzzi/Musikult#readme",
+  "homepage": "https://github.com/riccardovella/Musikult#readme",
   "dependencies": {
-    "amqplib": "^0.6.0",
     "dotenv": "^8.2.0",
     "ejs": "^3.1.3",
     "express": "^4.17.1",
